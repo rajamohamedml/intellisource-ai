@@ -66,7 +66,18 @@ the recommended way to review results in a browser. It includes:
   list of the main domain (business/feature) modules.
 - **Stats dashboard** — total files parsed, classes analyzed, methods
   analyzed, REST endpoints discovered, complexity outliers, and
-  deterministic security findings, at a glance.
+  deterministic security findings (with a High/Medium/Low severity
+  breakdown of its own), at a glance.
+- **Repo-size & token-savings tiles** — total lines of code across the
+  codebase; the raw repository's token count via the real Anthropic
+  tokenizer; the condensed characters/tokens this tool actually sends the
+  LLM; and the resulting token-savings percentage — the "structure, not
+  source" cost story in one glance.
+- **ROI estimate** — projected manual-review hours/cost at a configurable
+  throughput and hourly rate (`--review-loc-per-hour` / `--reviewer-hourly-rate`,
+  default 200 LOC/hour at $75/hour) versus this run's actual LLM cost, with
+  the assumed inputs shown alongside the estimate itself — a labeled
+  estimate, not a measured figure.
 - **Hotspots panel** — the top classes ranked by `git` churn x complexity
   ("changed often, hard to change safely"), each with its commit count,
   last-modified date, and high-complexity-method count.
@@ -118,6 +129,14 @@ zero additional token cost. For reference, a full run against a
 247-class, 188-file production Spring Boot repository
 (`spring-rest-sakila`) completed for roughly $0.02–$0.08 depending on
 cache state — a real, reproducible figure, not a projected estimate.
+
+`metadata` also carries the repo-size, token-savings, security-severity,
+and ROI figures behind the tiles above (`total_lines_of_code`,
+`estimated_total_tokens`, `llm_input_characters`, `estimated_llm_tokens`,
+`token_savings_pct`, `security_findings_high/medium/low`,
+`estimated_manual_review_hours/cost_usd`, `estimated_cost_savings_usd`,
+plus the `review_loc_per_hour_assumed`/`reviewer_hourly_rate_usd_assumed`
+inputs the ROI figures are built from) — schema version `1.3`.
 
 ## Approach
 
@@ -204,6 +223,8 @@ To see what the pipeline actually did on a given run:
 | Hotspots | `churn.commit_count x (1 + high-complexity method count)` per class, ranked descending (`pipeline._compute_hotspots`) — "changed often AND hard to change safely" |
 | Git churn | A single `git log --name-only` pass (`churn.py`), re-anchored from the git top level to `repo_root` so keys match every other module's `file_path`; degrades to empty (never raises) without history |
 | Token-limit enforcement | Real token counts via the Anthropic SDK's `count_tokens` endpoint (never a character-count guess, never `tiktoken`), enforced per batch with a hard ceiling |
+| Token-savings estimate | Real `count_tokens` calls over the entire raw repository vs. the condensed text this tool actually sends the LLM (`pipeline._estimate_repo_tokens`/`_estimate_llm_tokens`); an optional report-enrichment stat that degrades to 0 rather than failing the run if token counting errors |
+| ROI estimate | `total_lines_of_code / review_loc_per_hour_assumed x reviewer_hourly_rate_usd_assumed` vs. this run's actual cost (`pipeline._estimate_manual_review_roi`) — a labeled estimate, with its assumed inputs configurable via `--review-loc-per-hour`/`--reviewer-hourly-rate` and carried alongside the figure in `analysis.json` |
 | LLM orchestration | LangChain's `ChatAnthropic` + `.with_structured_output(PydanticModel)`, so the API/SDK — not prompt wording — guarantees schema-conformant JSON |
 | Cost control | Batching (several classes per call) + content-hash caching (`cache.py`) so unchanged files never pay for a second LLM call |
 | Output presentation | Both the JSON deliverable and the HTML report are rendered from one Pydantic model (`schemas.ProjectAnalysis`) |
@@ -232,6 +253,7 @@ To see what the pipeline actually did on a given run:
 | 18 | Single source of truth for presentation — the HTML report renders the same model as the JSON, so they can't drift apart | `report_generator.py` |
 | 19 | Autoescaped templating (Jinja2 `autoescape=True`) — LLM-generated text can never be interpreted as HTML/JS in the report | `report_generator.py` |
 | 20 | Three additional free, deterministic signals (security findings, dependency graph, git churn) extend the same "no LLM cost" static-analysis phase rather than adding new paid calls | `security_scanner.py`, `dependency_graph.py`, `churn.py` |
+| 21 | Business-value metrics (token savings, ROI vs. manual review) are labeled estimates, not presented as measured facts — their assumed inputs (`review_loc_per_hour_assumed`, `reviewer_hourly_rate_usd_assumed`) are carried in the schema and shown alongside the figure itself | `schemas.py` (`RunMetadata`), `report.html`'s stats caption |
 
 Two items the assignment calls out by name got a specific, verifiable answer rather than an approximation:
 
@@ -251,6 +273,8 @@ Two items the assignment calls out by name got a specific, verifiable answer rat
 - **Security findings are regex-based pattern matching, not a certified static-analysis tool.** They catch the specific patterns `security_scanner.py` looks for (hardcoded credential-like fields, SQL string concatenation, empty catch blocks) — real vulnerabilities outside those three patterns are not flagged, and a legitimately-named non-secret field (e.g. `passwordMinLength`) could be a false positive.
 - **The dependency graph matches on simple class names, not fully-qualified/type-resolved references.** Two unrelated classes sharing the same simple name in different packages could produce a spurious edge; this is a heuristic, not a type-checker.
 - **Git churn quality depends on clone depth.** `--git-history-depth` (default 200) bounds how much history is cloned; a repo with more commits than that on the relevant files will under-report churn, and `--local-path` pointed at a shallow CI checkout (`fetch-depth: 1`) will show near-zero churn for everything. Churn is silently omitted (not an error) whenever `git log` has nothing to work with.
+- **The ROI estimate (manual-review hours/cost saved) is a labeled estimate, not a measured figure.** It's built from a configurable assumed throughput and hourly rate (`--review-loc-per-hour`, default 200; `--reviewer-hourly-rate`, default $75) applied to `total_lines_of_code` — there's no universal constant for either, so the report shows the assumed inputs alongside the derived figure rather than presenting it as ground truth.
+- **The raw-repository and condensed-LLM-input token estimates require a working Anthropic API connection**, unlike most of this tool's report content. They're optional report-enrichment stats: a `count_tokens` failure (bad key, no credit, network error) is logged and the figures degrade to 0 rather than failing the run.
 
 ## Setup
 
@@ -274,6 +298,9 @@ python main.py --repo-url https://github.com/<owner>/<repo>
 
 # Cheap smoke test against a handful of files before running the full analysis:
 python main.py --repo-url https://github.com/codejsha/spring-rest-sakila --max-files 15
+
+# Adjust the report's ROI-vs-manual-review assumption (default: 200 LOC/hour at $75/hour):
+python main.py --repo-url https://github.com/<owner>/<repo> --review-loc-per-hour 150 --reviewer-hourly-rate 100
 
 # Full flag reference:
 python main.py --help

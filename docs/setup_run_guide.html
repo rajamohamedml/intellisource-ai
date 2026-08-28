@@ -511,9 +511,15 @@
           rather than being silently dropped. One more LLM call —
           <code>generate_overview()</code> — produces the single project-wide summary from the
           README, build file, and every class's one-line purpose. Churn x complexity is then
-          ranked into a <code>hotspots</code> list of the riskiest classes.
+          ranked into a <code>hotspots</code> list of the riskiest classes. A few more
+          report-only figures are computed here too: total repo LOC, the raw repository's
+          token count vs. the condensed text actually sent to the LLM (and the resulting
+          token-savings %), a High/Medium/Low security-severity breakdown, and an ROI estimate
+          against manual code review — the last two Anthropic <code>count_tokens</code> calls
+          are the only report content that needs a live API connection independent of caching,
+          and degrade to <code>0</code> rather than failing the run if that call errors.
         </p>
-        <div class="calls-out"><code>_assemble_classes()</code> + <code>_generate_overview()</code> + <code>_compute_hotspots()</code> → one <code>ProjectAnalysis</code></div>
+        <div class="calls-out"><code>_assemble_classes()</code> + <code>_generate_overview()</code> + <code>_compute_hotspots()</code> + <code>_estimate_repo_tokens()</code>/<code>_estimate_llm_tokens()</code>/<code>_estimate_manual_review_roi()</code> → one <code>ProjectAnalysis</code></div>
       </div>
 
       <div class="stage">
@@ -580,6 +586,20 @@
         favored — "risky" here always means both signals agreeing, not either alone.
       </dd>
 
+      <dt>token_savings_pct and the ROI estimate</dt>
+      <dd>
+        <code>pipeline._estimate_repo_tokens()</code> and <code>_estimate_llm_tokens()</code>
+        both call the real Anthropic <code>count_tokens</code> endpoint — once over the entire
+        raw repository, once over the condensed text actually sent to the LLM — and their ratio
+        becomes <code>token_savings_pct</code>. The ROI figures
+        (<code>_estimate_manual_review_roi()</code>) are a separate, purely arithmetic estimate
+        from <code>total_lines_of_code</code> against the assumed
+        <code>--review-loc-per-hour</code>/<code>--reviewer-hourly-rate</code>, compared to this
+        run's actual cost. Both the raw and condensed token calls are optional
+        report-enrichment stats, not core analysis: a failure is logged and reported as
+        <code>0</code> rather than aborting the run.
+      </dd>
+
       <dt>action.yml — the same pipeline, as a GitHub Action</dt>
       <dd>
         The repo root's <code>action.yml</code> is a composite action wrapping this exact CLI:
@@ -618,6 +638,9 @@
         <div class="line">&nbsp;</div>
         <div class="line"><span class="comment"># clone more history so churn/hotspots reflect real activity</span></div>
         <div class="line"><span class="prompt">PS&gt;</span> python main.py --repo-url https://github.com/&lt;owner&gt;/&lt;repo&gt; --git-history-depth 500</div>
+        <div class="line">&nbsp;</div>
+        <div class="line"><span class="comment"># override the report's ROI-vs-manual-review assumption (default 200 LOC/hr @ $75/hr)</span></div>
+        <div class="line"><span class="prompt">PS&gt;</span> python main.py --repo-url https://github.com/&lt;owner&gt;/&lt;repo&gt; --review-loc-per-hour 150 --reviewer-hourly-rate 100</div>
         <div class="line">&nbsp;</div>
         <div class="line"><span class="comment"># see every flag</span></div>
         <div class="line"><span class="prompt">PS&gt;</span> python main.py --help</div>
@@ -700,6 +723,10 @@
           <tr>
             <td class="cmd"><code>python main.py --repo-url URL --git-history-depth 500</code></td>
             <td class="desc">Clone more history so churn/hotspots reflect real activity</td>
+          </tr>
+          <tr>
+            <td class="cmd"><code>python main.py --repo-url URL --review-loc-per-hour 150 --reviewer-hourly-rate 100</code></td>
+            <td class="desc">Override the report's ROI-vs-manual-review assumption (default 200 LOC/hr @ $75/hr)</td>
           </tr>
           <tr>
             <td class="cmd"><code>python main.py --help</code></td>

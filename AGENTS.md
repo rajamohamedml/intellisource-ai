@@ -18,6 +18,8 @@ The structural engine currently supports Java/Spring Boot codebases only; Python
   - `python main.py --repo-url ... --refresh-repo --refresh-cache`
 - Clone more history so churn/hotspots reflect real activity (default 200 commits):
   - `python main.py --repo-url ... --git-history-depth 500`
+- Override the report's ROI-vs-manual-review assumption (default: 200 LOC/hour at $75/hour):
+  - `python main.py --repo-url ... --review-loc-per-hour 150 --reviewer-hourly-rate 100`
 - Skip HTML report generation:
   - `python main.py --repo-url ... --no-html-report`
 
@@ -42,7 +44,7 @@ The structural engine currently supports Java/Spring Boot codebases only; Python
 - `src/intellisource_ai/cache.py` — content-hash cache for LLM results; avoids repeated token cost for unchanged content.
 - `src/intellisource_ai/report_generator.py` — renders the final HTML report from the Pydantic model.
 - `src/intellisource_ai/schemas.py` — core Pydantic models and the single `ProjectAnalysis` schema.
-- `src/intellisource_ai/pipeline.py` — end-to-end orchestration, graceful degradation, and the `hotspots` ranking (`churn x complexity`).
+- `src/intellisource_ai/pipeline.py` — end-to-end orchestration, graceful degradation, the `hotspots` ranking (`churn x complexity`), and the report-enrichment stats (repo LOC, raw-vs-condensed token counts/savings, security severity breakdown, ROI estimate).
 - `action.yml` (repo root) — reusable composite GitHub Action wrapping this CLI (`uses: rajamohamedml/intellisource-ai@<ref>`); runs `main.py --local-path $GITHUB_WORKSPACE`, caches `.cache/` via `actions/cache`, writes a job-summary table.
 
 ## Important conventions for agents
@@ -50,7 +52,8 @@ The structural engine currently supports Java/Spring Boot codebases only; Python
 - Preserve the two-stage design: free deterministic static analysis (parsing, complexity, security findings, dependency graph, churn) first, then LLM-based semantic description only for what static analysis can't determine.
 - Do not hardcode a target repository URL in the tool.
 - Either `--repo-url`/`REPO_URL` or `--local-path` is required; `ANTHROPIC_API_KEY` is required to run LLM calls.
-- The pipeline is linear and should degrade gracefully: parse failures, LLM failures, or missing git history should be logged and skipped, not crash the whole run.
+- The pipeline is linear and should degrade gracefully: parse failures, LLM failures, or missing git history should be logged and skipped, not crash the whole run. The same applies to the report-enrichment token estimates (`pipeline._estimate_repo_tokens`/`_estimate_llm_tokens`) — they're optional display figures, not core analysis output, so a `count_tokens` failure degrades to `0` instead of aborting the run.
+- Business-value figures (token savings, ROI vs. manual review) must stay labeled estimates: keep their assumed inputs (`review_loc_per_hour_assumed`, `reviewer_hourly_rate_usd_assumed`) visible in both `RunMetadata` and the report caption, never presented as measured facts.
 - The output model is authoritative: `output/analysis.json`, `output/analysis.schema.json`, and `output/report.html` are generated from the same `ProjectAnalysis` object.
 - The test suite expects no real API calls. Use existing mocks from `tests/conftest.py` when working on tests.
 - `pyproject.toml` is the source of truth for dependencies and tooling config.

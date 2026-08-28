@@ -26,6 +26,9 @@ python main.py --repo-url https://github.com/<owner>/<repo> --max-files 15
 # Force re-clone the repo or bypass the LLM cache
 python main.py --repo-url ... --refresh-repo --refresh-cache
 
+# Override the report's ROI-vs-manual-review assumption (default: 200 LOC/hour at $75/hour)
+python main.py --repo-url ... --review-loc-per-hour 150 --reviewer-hourly-rate 100
+
 # Full flag reference
 python main.py --help
 ```
@@ -67,6 +70,8 @@ All cross-module contracts are Pydantic models in `schemas.py` — never raw dic
 **Caching**: `cache.py` keys on `SHA-256(PROMPT_VERSION + rendered_class_text)`. A class whose source is unchanged costs zero tokens on re-runs. Bump `PROMPT_VERSION` in `cache.py` when the extraction prompt changes meaningfully.
 
 **Output**: `pipeline.py` writes `output/analysis.json`, `output/analysis.schema.json`, and `output/report.html` — all derived from the single `ProjectAnalysis` Pydantic model, so JSON and HTML can never disagree.
+
+**Report-enrichment metrics** (`RunMetadata`, schema `1.3`): beyond per-run cost/cache stats, `pipeline.py` computes repo-wide `total_lines_of_code`; `estimated_total_tokens` (raw repo, via `count_tokens`) vs. `estimated_llm_tokens` (condensed prompt text, same tokenizer) and the resulting `token_savings_pct`; a `security_findings_high/medium/low` severity breakdown; and a `estimated_manual_review_hours/cost_usd`/`estimated_cost_savings_usd` ROI estimate against manual review, driven by `--review-loc-per-hour`/`--reviewer-hourly-rate` (defaults 200 LOC/hour, $75/hour — see `config.py`). The two `count_tokens`-based figures are the only report content needing a live API connection independent of caching; a failure there is logged and degrades to `0` rather than failing the run (unlike `chunker._count_tokens`, whose failure must abort the run since every batch depends on it).
 
 **Error containment**: `pipeline.py` is the sole owner of the degradation policy. A failed parse, failed LLM batch, or failed overview call is logged and skipped; the run continues. Classes with no LLM description get an explicit `"Description unavailable."` placeholder rather than being silently dropped.
 

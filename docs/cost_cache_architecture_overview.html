@@ -374,6 +374,13 @@
       </div>
     </div>
 
+    <div class="stage" style="--rail-color:var(--accent-free); animation-delay:.46s">
+      <div class="rail"></div>
+      <div class="card" style="border-left:3px solid var(--accent-free); background:var(--accent-free-bg);">
+        <p class="plain" style="margin-bottom:0;"><b>Also computed at step 12, added later:</b> a handful of report-only figures — total repo LOC, a High/Medium/Low security-severity breakdown, and an ROI estimate against manual review (<code class="font-mono">total_lines_of_code / review_loc_per_hour_assumed × reviewer_hourly_rate_usd_assumed</code>, vs. this run's actual cost). Two of them — the raw repository's token count and the condensed LLM-input text's token count, whose ratio becomes <code class="font-mono">token_savings_pct</code> — still call the real Anthropic <code class="font-mono">count_tokens</code> endpoint, unconditionally, regardless of cache state. Unlike step 8's batching call, a failure here is logged and reported as <code class="font-mono">0</code> rather than aborting the run — these are optional display figures, not core analysis output.</p>
+      </div>
+    </div>
+
     <div class="stage" style="--rail-color:var(--accent-free); --dot-color:var(--accent-free); animation-delay:.48s">
       <div class="rail"><div class="dot">13</div></div>
       <div class="card">

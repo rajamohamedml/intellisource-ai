@@ -102,6 +102,13 @@
   }
   .stat-card .value { font-size: 24px; font-weight: 700; color: var(--accent); }
   .stat-card .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .stat-card.highlight { background: var(--success-light); border-color: rgba(25,158,112,0.35); }
+  .stat-card.highlight .value { color: #5fe0bb; }
+  .stat-card.severity-high { background: var(--danger-light); border-color: rgba(230,103,103,0.35); }
+  .stat-card.severity-high .value { color: #f3a9a9; }
+  .stat-card.severity-medium { background: var(--warning-light); border-color: rgba(250,178,25,0.35); }
+  .stat-card.severity-medium .value { color: #f0c14f; }
+  .stats-caption { font-size: 12px; color: var(--muted); margin: -18px 0 28px; }
 
   .module-nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 28px; }
   .module-nav a {
@@ -421,9 +428,26 @@
     <div class="stat-card"><div class="value">{{ total_endpoints }}</div><div class="label">REST Endpoints</div></div>
     <div class="stat-card"><div class="value">{{ high_complexity_count }}</div><div class="label">High Complexity</div></div>
     <div class="stat-card"><div class="value">{{ metadata.security_findings_total }}</div><div class="label">Security Findings</div></div>
+    <div class="stat-card severity-high"><div class="value">{{ metadata.security_findings_high }}</div><div class="label">High Severity</div></div>
+    <div class="stat-card severity-medium"><div class="value">{{ metadata.security_findings_medium }}</div><div class="label">Medium Severity</div></div>
+    <div class="stat-card"><div class="value">{{ metadata.security_findings_low }}</div><div class="label">Low Severity</div></div>
     <div class="stat-card"><div class="value">{{ cache_hit_rate_pct }}%</div><div class="label">Cache Hit Rate</div></div>
     <div class="stat-card"><div class="value">${{ "%.4f"|format(metadata.estimated_cost_usd) }}</div><div class="label">Estimated Cost</div></div>
+    <div class="stat-card"><div class="value">{{ metadata.total_lines_of_code|thousands }}</div><div class="label">Lines of Code</div></div>
+    <div class="stat-card"><div class="value">{{ metadata.estimated_total_tokens|thousands }}</div><div class="label">Est. Repo Tokens</div></div>
+    <div class="stat-card"><div class="value">{{ metadata.llm_input_characters|thousands }}</div><div class="label">Chars Sent to LLM</div></div>
+    <div class="stat-card"><div class="value">{{ metadata.estimated_llm_tokens|thousands }}</div><div class="label">Tokens Sent to LLM</div></div>
+    <div class="stat-card highlight"><div class="value">{{ metadata.token_savings_pct }}%</div><div class="label">Token Cost Saved</div></div>
+    <div class="stat-card"><div class="value">{{ metadata.estimated_manual_review_hours|thousands }}</div><div class="label">Est. Manual Review Hours</div></div>
+    <div class="stat-card"><div class="value">${{ metadata.estimated_manual_review_cost_usd|usd }}</div><div class="label">Est. Manual Review Cost</div></div>
+    <div class="stat-card highlight"><div class="value">${{ metadata.estimated_cost_savings_usd|usd }}</div><div class="label">Est. Cost Savings</div></div>
   </div>
+  <p class="stats-caption">
+    Manual-review estimate assumes {{ metadata.review_loc_per_hour_assumed }} LOC/hour at
+    ${{ "%.0f"|format(metadata.reviewer_hourly_rate_usd_assumed) }}/hour
+    (<code>--review-loc-per-hour</code> / <code>--reviewer-hourly-rate</code>) --
+    a labeled estimate, not a measured figure.
+  </p>
 
   {% if modules|length > 1 %}
   <nav class="module-nav" aria-label="Jump to module">

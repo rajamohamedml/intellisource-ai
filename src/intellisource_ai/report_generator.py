@@ -378,6 +378,8 @@ def render_report(analysis: ProjectAnalysis) -> str:
         loader=FileSystemLoader(str(_TEMPLATE_DIR)),
         autoescape=select_autoescape(["html", "jinja2"]),
     )
+    env.filters["thousands"] = lambda n: f"{n:,}"
+    env.filters["usd"] = lambda n: f"{n:,.2f}"
     template = env.get_template(_TEMPLATE_NAME)
 
     total_llm_calls = analysis.metadata.llm_calls_made + analysis.metadata.llm_calls_cached

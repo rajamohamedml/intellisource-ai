@@ -18,7 +18,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
-SCHEMA_VERSION = "1.1"
+SCHEMA_VERSION = "1.3"
 
 
 class ClassType(StrEnum):
@@ -287,6 +287,34 @@ class RunMetadata(BaseModel):
     total_output_tokens: int
     estimated_cost_usd: float
     security_findings_total: int = 0
+    total_lines_of_code: int = 0
+    # Raw-repository size figures (every .java class file plus recognized
+    # config files), independent of caching and of what this particular run
+    # actually spent -- contrast with total_input_tokens/total_output_tokens
+    # above, which are this run's actual, cache-aware LLM usage.
+    estimated_total_tokens: int = 0
+    llm_input_characters: int = 0
+    estimated_llm_tokens: int = 0
+    # Headline demo figure: percentage reduction from estimated_total_tokens
+    # (raw repo) to estimated_llm_tokens (condensed extraction) -- how much
+    # token cost this tool's structure-not-source approach saves.
+    token_savings_pct: float = 0.0
+    # Severity breakdown of security_findings_total, surfaced as its own
+    # top-level tiles rather than requiring a reader to open Notable
+    # Findings to see risk concentration.
+    security_findings_high: int = 0
+    security_findings_medium: int = 0
+    security_findings_low: int = 0
+    # ROI estimate vs. manual code review -- a labeled estimate built on
+    # review_loc_per_hour_assumed / reviewer_hourly_rate_usd_assumed
+    # (config.py's --review-loc-per-hour / --reviewer-hourly-rate), not a
+    # measured figure. Carrying the assumed inputs alongside the derived
+    # numbers keeps the estimate's basis visible in the report itself.
+    review_loc_per_hour_assumed: int = 0
+    reviewer_hourly_rate_usd_assumed: float = 0.0
+    estimated_manual_review_hours: float = 0.0
+    estimated_manual_review_cost_usd: float = 0.0
+    estimated_cost_savings_usd: float = 0.0
 
 
 class ProjectAnalysis(BaseModel):

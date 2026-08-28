@@ -1,11 +1,30 @@
 {
-  "schema_version": "1.1",
+  "schema_version": "1.3",
   "project": {
-    "name": "repo",
-    "description": "Overview generation failed -- see run logs for details.",
-    "tech_stack": [],
-    "architecture_summary": "",
-    "main_modules": []
+    "name": "Apollo",
+    "description": "Apollo is a reliable, centralized configuration management system designed for microservice and distributed application scenarios. It provides unified management of configurations across different environments, clusters, and applications with real-time hot-release capabilities. The system includes a server component built on Spring Boot and Spring Cloud, along with SDKs for Java and .NET that integrate seamlessly with various runtime environments.",
+    "tech_stack": [
+      "Spring Boot 4.0.5",
+      "Spring Cloud 2025.1.1",
+      "Spring Cloud Alibaba 2025.1.0.0",
+      "Spring Data JPA",
+      "Jakarta Mail",
+      "Apache HttpClient 4.5.14",
+      "Guava 32.0.0",
+      "Apache Commons Lang3 3.18.0",
+      "Javassist 3.23.1-GA"
+    ],
+    "architecture_summary": "Apollo is organized into a layered, modular architecture with clear separation of concerns: Controllers expose REST APIs for managing configurations (apps, clusters, namespaces, releases, items); Services coordinate business logic across repositories and domain entities; Repositories provide data access via Spring Data JPA; Entities represent core domain objects with soft-delete support and audit tracking. Cross-cutting concerns are handled through AOP aspects (namespace locking, audit span capture), servlet filters (authentication), and HTTP interceptors. The system includes audit logging with distributed tracing support, gray release management with rule caching, message-based release notification, and database-backed service discovery and registry components. Configuration is managed through Spring Boot auto-configuration with feature toggles for audit logging and service registry functionality.",
+    "main_modules": [
+      "Application Management",
+      "Namespace and Cluster Configuration",
+      "Release Management and Gray Deployments",
+      "Configuration Items (Key-Value Pairs)",
+      "Audit Logging and Tracing",
+      "Access Control and Authentication",
+      "Service Discovery and Registry",
+      "Release Messaging and Notifications"
+    ]
   },
   "classes": [
     {
@@ -5004,68 +5023,70 @@
       "package": "com.ctrip.framework.apollo.audit.entity",
       "class_name": "Builder",
       "class_type": "entity",
-      "description": "Builder class for fluent construction of ApolloAuditLog instances with chainable setter methods.",
+      "description": "Inner builder class for constructing ApolloAuditLog instances with fluent setter methods for audit log properties including trace identifiers, operator information, operation details, and timestamp.",
       "rest_endpoints": [],
       "methods": [
         {
           "signature": "void Builder()",
-          "description": "Description unavailable.",
+          "description": "Constructs a new empty Builder instance for ApolloAuditLogDataInfluence.",
           "loc": 1,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Builder spanId(String val)",
-          "description": "Description unavailable.",
+          "description": "Sets the span ID for distributed tracing correlation and returns this builder for method chaining.",
           "loc": 4,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Builder entityId(String val)",
-          "description": "Description unavailable.",
+          "description": "Sets the entity ID identifying the affected resource and returns this builder for method chaining.",
           "loc": 4,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Builder entityName(String val)",
-          "description": "Description unavailable.",
+          "description": "Sets the entity name/type and returns this builder for method chaining.",
           "loc": 4,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Builder fieldName(String val)",
-          "description": "Description unavailable.",
+          "description": "Sets the field name that was modified and returns this builder for method chaining.",
           "loc": 4,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Builder oldVal(String val)",
-          "description": "Description unavailable.",
+          "description": "Sets the previous value before the modification and returns this builder for method chaining.",
           "loc": 4,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Builder newVal(String val)",
-          "description": "Description unavailable.",
+          "description": "Sets the new value after the modification and returns this builder for method chaining.",
           "loc": 4,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "ApolloAuditLogDataInfluence build()",
-          "description": "Description unavailable.",
+          "description": "Constructs and returns the final ApolloAuditLogDataInfluence instance with all configured properties.",
           "loc": 3,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         }
       ],
       "notable_aspects": [
-        "Implements Builder pattern for fluent object construction with all setter methods returning this for chaining"
+        "Implements the Builder design pattern for fluent object construction",
+        "Supports distributed tracing with traceId, spanId, parentSpanId, and followsFromSpanId fields",
+        "Captures before/after values to track data mutations in audit records"
       ],
       "security_findings": [],
       "depends_on": [],
@@ -11997,19 +12018,19 @@
       "package": "com.ctrip.framework.apollo.biz.service",
       "class_name": "NamespaceLockService",
       "class_type": "service",
-      "description": "Description unavailable.",
+      "description": "Service for managing distributed locks on namespaces, enabling exclusive write access during configuration updates.",
       "rest_endpoints": [],
       "methods": [
         {
           "signature": "void NamespaceLockService(NamespaceLockRepository namespaceLockRepository)",
-          "description": "Description unavailable.",
+          "description": "Constructor that injects the repository for accessing namespace lock data.",
           "loc": 3,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "NamespaceLock findLock(Long namespaceId)",
-          "description": "Description unavailable.",
+          "description": "Retrieves the current lock for a specific namespace if one exists.",
           "loc": 3,
           "cyclomatic_estimate": 1,
           "high_complexity": false
@@ -12029,7 +12050,10 @@
           "high_complexity": false
         }
       ],
-      "notable_aspects": [],
+      "notable_aspects": [
+        "Distributed locking mechanism to prevent concurrent modifications to namespaces",
+        "Transactional consistency for lock acquisition and release operations"
+      ],
       "security_findings": [],
       "depends_on": [
         "NamespaceLock",
@@ -12045,124 +12069,124 @@
       "package": "com.ctrip.framework.apollo.biz.service",
       "class_name": "NamespaceService",
       "class_type": "service",
-      "description": "Description unavailable.",
+      "description": "Core service for namespace management, providing operations for creation, retrieval, deletion, and hierarchical relationships in the Apollo configuration framework.",
       "rest_endpoints": [],
       "methods": [
         {
           "signature": "void NamespaceService(ReleaseHistoryService releaseHistoryService, NamespaceRepository namespaceRepository, AuditService auditService, AppNamespaceService appNamespaceService, MessageSender messageSender, ItemService itemService, CommitService commitService, ReleaseService releaseService, ClusterService clusterService, NamespaceBranchService namespaceBranchService, NamespaceLockService namespaceLockService, InstanceService instanceService, BizConfig bizConfig)",
-          "description": "Description unavailable.",
+          "description": "Constructor that injects 13 dependencies including repositories, related services, and configuration for namespace operations.",
           "loc": 22,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Namespace findOne(Long namespaceId)",
-          "description": "Description unavailable.",
+          "description": "Retrieves a namespace by its unique identifier.",
           "loc": 3,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Namespace findOne(String appId, String clusterName, String namespaceName)",
-          "description": "Description unavailable.",
+          "description": "Retrieves a namespace using the composite key of application, cluster, and namespace name.",
           "loc": 4,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Page findByItem(String itemKey, Pageable pageable)",
-          "description": "Description unavailable.",
+          "description": "Searches for namespaces containing a specific configuration item key, returning paginated results of variable size.",
           "loc": 11,
           "cyclomatic_estimate": 2,
           "high_complexity": false
         },
         {
           "signature": "Namespace findPublicNamespaceForAssociatedNamespace(String clusterName, String namespaceName)",
-          "description": "Description unavailable.",
+          "description": "Locates the public namespace associated with a given namespace, with complex resolution logic for cross-cluster references.",
           "loc": 52,
           "cyclomatic_estimate": 7,
           "high_complexity": true
         },
         {
           "signature": "List findPublicAppNamespaceAllNamespaces(String namespaceName, Pageable page)",
-          "description": "Description unavailable.",
+          "description": "Retrieves all namespaces associated with a public application namespace.",
           "loc": 12,
           "cyclomatic_estimate": 2,
           "high_complexity": false
         },
         {
           "signature": "List filterChildNamespace(List namespaces)",
-          "description": "Description unavailable.",
+          "description": "Filters a list of namespaces to identify and return only child namespaces.",
           "loc": 15,
           "cyclomatic_estimate": 4,
           "high_complexity": false
         },
         {
           "signature": "int countPublicAppNamespaceAssociatedNamespaces(String publicNamespaceName)",
-          "description": "Description unavailable.",
+          "description": "Counts the total number of namespaces that reference a specific public application namespace.",
           "loc": 12,
           "cyclomatic_estimate": 2,
           "high_complexity": false
         },
         {
           "signature": "List findNamespaces(String appId, String clusterName)",
-          "description": "Description unavailable.",
+          "description": "Retrieves all namespaces for a given application and cluster.",
           "loc": 8,
           "cyclomatic_estimate": 2,
           "high_complexity": false
         },
         {
           "signature": "List findByAppIdAndNamespaceName(String appId, String namespaceName)",
-          "description": "Description unavailable.",
+          "description": "Finds all namespaces matching an application and namespace name across all clusters.",
           "loc": 3,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Namespace findChildNamespace(String appId, String parentClusterName, String namespaceName)",
-          "description": "Description unavailable.",
+          "description": "Locates a child namespace derived from a parent namespace with complex branching logic.",
           "loc": 23,
           "cyclomatic_estimate": 6,
           "high_complexity": false
         },
         {
           "signature": "Namespace findChildNamespace(Namespace parentNamespace)",
-          "description": "Description unavailable.",
+          "description": "Retrieves the child namespace associated with a given parent namespace.",
           "loc": 8,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Namespace findParentNamespace(String appId, String clusterName, String namespaceName)",
-          "description": "Description unavailable.",
+          "description": "Finds the parent namespace from which a given namespace inherits configuration.",
           "loc": 3,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Namespace findParentNamespace(Namespace namespace)",
-          "description": "Description unavailable.",
+          "description": "Retrieves the parent namespace for a given namespace entity with hierarchical resolution.",
           "loc": 12,
           "cyclomatic_estimate": 3,
           "high_complexity": false
         },
         {
           "signature": "boolean isChildNamespace(String appId, String clusterName, String namespaceName)",
-          "description": "Description unavailable.",
+          "description": "Determines whether the specified namespace is a child namespace.",
           "loc": 3,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "boolean isChildNamespace(Namespace namespace)",
-          "description": "Description unavailable.",
+          "description": "Checks if a namespace entity is a child namespace.",
           "loc": 3,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "boolean isNamespaceUnique(String appId, String cluster, String namespace)",
-          "description": "Description unavailable.",
+          "description": "Validates that a namespace name is unique within an application and cluster.",
           "loc": 7,
           "cyclomatic_estimate": 1,
           "high_complexity": false
@@ -12204,20 +12228,25 @@
         },
         {
           "signature": "Map namespacePublishInfo(String appId)",
-          "description": "Description unavailable.",
+          "description": "Compiles comprehensive publish status and version information for all namespaces in an application.",
           "loc": 26,
           "cyclomatic_estimate": 5,
           "high_complexity": false
         },
         {
           "signature": "boolean isNamespaceNotPublished(Namespace namespace)",
-          "description": "Description unavailable.",
+          "description": "Checks whether a namespace lacks any active releases or published configurations.",
           "loc": 28,
           "cyclomatic_estimate": 5,
           "high_complexity": false
         }
       ],
-      "notable_aspects": [],
+      "notable_aspects": [
+        "Complex hierarchical namespace relationships with parent-child branching support",
+        "High-complexity methods for namespace deletion and public namespace resolution (cyclomatic complexity 6-7)",
+        "Extensive dependency injection with 13 collaborating services indicating complex business logic orchestration",
+        "Audit trail integration for all write operations"
+      ],
       "security_findings": [],
       "depends_on": [
         "Audit",
@@ -12241,12 +12270,12 @@
       "package": "com.ctrip.framework.apollo.biz.service",
       "class_name": "ReleaseHistoryService",
       "class_type": "service",
-      "description": "Description unavailable.",
+      "description": "Service for managing release history records and implementing automated retention policies with background cleanup for configuration change auditing.",
       "rest_endpoints": [],
       "methods": [
         {
           "signature": "void ReleaseHistoryService(ReleaseHistoryRepository releaseHistoryRepository, ReleaseRepository releaseRepository, AuditService auditService, BizConfig bizConfig, TransactionTemplate transactionManager)",
-          "description": "Description unavailable.",
+          "description": "Constructor that injects repositories, audit service, configuration, and transaction template for release history management.",
           "loc": 9,
           "cyclomatic_estimate": 1,
           "high_complexity": false
@@ -12260,28 +12289,28 @@
         },
         {
           "signature": "Page findReleaseHistoriesByNamespace(String appId, String clusterName, String namespaceName, Pageable pageable)",
-          "description": "Description unavailable.",
+          "description": "Retrieves paginated release history records for a specific namespace.",
           "loc": 5,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Page findByReleaseIdAndOperation(long releaseId, int operation, Pageable page)",
-          "description": "Description unavailable.",
+          "description": "Finds paginated history records for a release filtered by a specific operation type.",
           "loc": 5,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Page findByPreviousReleaseIdAndOperation(long previousReleaseId, int operation, Pageable page)",
-          "description": "Description unavailable.",
+          "description": "Queries paginated history records referencing a previous release and operation type.",
           "loc": 5,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Page findByReleaseIdAndOperationInOrderByIdDesc(long releaseId, Set operations, Pageable page)",
-          "description": "Description unavailable.",
+          "description": "Retrieves paginated history records for a release matching any of multiple operation types, ordered by descending ID.",
           "loc": 5,
           "cyclomatic_estimate": 1,
           "high_complexity": false
@@ -12302,21 +12331,21 @@
         },
         {
           "signature": "Optional releaseHistoryRetentionMaxId(ReleaseHistory releaseHistory, int releaseHistoryRetentionSize)",
-          "description": "Description unavailable.",
+          "description": "Determines the maximum history record ID to retain based on configured retention size policy.",
           "loc": 12,
           "cyclomatic_estimate": 2,
           "high_complexity": false
         },
         {
           "signature": "void cleanReleaseHistory(ReleaseHistory cleanRelease)",
-          "description": "Description unavailable.",
+          "description": "Executes the background cleanup task to delete old release history records exceeding retention limits.",
           "loc": 35,
           "cyclomatic_estimate": 5,
           "high_complexity": false
         },
         {
           "signature": "int getReleaseHistoryRetentionLimit(ReleaseHistory releaseHistory)",
-          "description": "Description unavailable.",
+          "description": "Retrieves the applicable retention limit for release history based on configuration.",
           "loc": 8,
           "cyclomatic_estimate": 1,
           "high_complexity": false
@@ -12329,7 +12358,12 @@
           "high_complexity": false
         }
       ],
-      "notable_aspects": [],
+      "notable_aspects": [
+        "Background cleanup scheduler with @PostConstruct/@PreDestroy lifecycle management",
+        "Automated retention policy enforcement to prevent unbounded history growth",
+        "Transactional consistency for history creation and deletion",
+        "High-complexity cleanup logic (cyclomatic complexity 5)"
+      ],
       "security_findings": [],
       "depends_on": [
         "Audit",
@@ -12348,32 +12382,34 @@
       "package": "com.ctrip.framework.apollo.biz.service",
       "class_name": "ReleaseMessageService",
       "class_type": "service",
-      "description": "Description unavailable.",
+      "description": "Service for retrieving the latest release messages, enabling clients to detect configuration changes through message tracking.",
       "rest_endpoints": [],
       "methods": [
         {
           "signature": "void ReleaseMessageService(ReleaseMessageRepository releaseMessageRepository)",
-          "description": "Description unavailable.",
+          "description": "Constructor that injects the repository for accessing release message data.",
           "loc": 3,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "ReleaseMessage findLatestReleaseMessageForMessages(Collection messages)",
-          "description": "Description unavailable.",
+          "description": "Returns the single most recent release message from a collection of message identifiers.",
           "loc": 6,
           "cyclomatic_estimate": 2,
           "high_complexity": false
         },
         {
           "signature": "List findLatestReleaseMessagesGroupByMessages(Collection messages)",
-          "description": "Description unavailable.",
+          "description": "Retrieves the latest release message for each unique message identifier, grouping results by message.",
           "loc": 19,
           "cyclomatic_estimate": 4,
           "high_complexity": false
         }
       ],
-      "notable_aspects": [],
+      "notable_aspects": [
+        "Lightweight service focused on message-based change notification lookups"
+      ],
       "security_findings": [],
       "depends_on": [
         "ReleaseMessage",
@@ -12389,82 +12425,82 @@
       "package": "com.ctrip.framework.apollo.biz.service",
       "class_name": "ReleaseService",
       "class_type": "service",
-      "description": "Description unavailable.",
+      "description": "Comprehensive service for managing configuration releases, including publishing, rollback, branching, and change merging with support for gray deployments.",
       "rest_endpoints": [],
       "methods": [
         {
           "signature": "void ReleaseService(ReleaseRepository releaseRepository, ItemService itemService, AuditService auditService, NamespaceLockService namespaceLockService, NamespaceService namespaceService, NamespaceBranchService namespaceBranchService, ReleaseHistoryService releaseHistoryService, ItemSetService itemSetService)",
-          "description": "Description unavailable.",
+          "description": "Constructor injecting 8 dependencies for repository access, service orchestration, and locking/auditing.",
           "loc": 13,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Release findOne(long releaseId)",
-          "description": "Description unavailable.",
+          "description": "Retrieves a single release by its unique identifier.",
           "loc": 3,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Release findActiveOne(long releaseId)",
-          "description": "Description unavailable.",
+          "description": "Retrieves a release by ID that is currently active (non-deleted).",
           "loc": 3,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "List findByReleaseIds(Set releaseIds)",
-          "description": "Description unavailable.",
+          "description": "Fetches multiple releases given a set of release IDs.",
           "loc": 7,
           "cyclomatic_estimate": 2,
           "high_complexity": false
         },
         {
           "signature": "List findByReleaseKeys(Set releaseKeys)",
-          "description": "Description unavailable.",
+          "description": "Looks up releases using their unique release key identifiers.",
           "loc": 3,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Release findByReleaseKey(String releaseKey)",
-          "description": "Description unavailable.",
+          "description": "Retrieves a single release by its unique release key.",
           "loc": 3,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Release findLatestActiveRelease(Namespace namespace)",
-          "description": "Description unavailable.",
+          "description": "Finds the most recent active release for a namespace.",
           "loc": 5,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Release findLatestActiveRelease(String appId, String clusterName, String namespaceName)",
-          "description": "Description unavailable.",
+          "description": "Locates the latest active release using application, cluster, and namespace identifiers.",
           "loc": 5,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "List findAllReleases(String appId, String clusterName, String namespaceName, Pageable page)",
-          "description": "Description unavailable.",
+          "description": "Retrieves all releases (active and inactive) for a namespace in paginated form.",
           "loc": 10,
           "cyclomatic_estimate": 2,
           "high_complexity": false
         },
         {
           "signature": "List findActiveReleases(String appId, String clusterName, String namespaceName, Pageable page)",
-          "description": "Description unavailable.",
+          "description": "Retrieves only active releases for a namespace with pagination support.",
           "loc": 10,
           "cyclomatic_estimate": 2,
           "high_complexity": false
         },
         {
           "signature": "List findActiveReleasesBetween(String appId, String clusterName, String namespaceName, long fromReleaseId, long toReleaseId)",
-          "description": "Description unavailable.",
+          "description": "Fetches active releases within a specified ID range for a namespace.",
           "loc": 10,
           "cyclomatic_estimate": 2,
           "high_complexity": false
@@ -12485,7 +12521,7 @@
         },
         {
           "signature": "Release publishBranchNamespace(Namespace parentNamespace, Namespace childNamespace, Map childNamespaceItems, String releaseName, String releaseComment, String operator, boolean isEmergencyPublish, Set grayDelKeys)",
-          "description": "Description unavailable.",
+          "description": "Publishes a child branch namespace with gray deletion support for phased item removal.",
           "loc": 23,
           "cyclomatic_estimate": 4,
           "high_complexity": false
@@ -12499,63 +12535,63 @@
         },
         {
           "signature": "void checkLock(Namespace namespace, boolean isEmergencyPublish, String operator)",
-          "description": "Description unavailable.",
+          "description": "Validates that a namespace lock is available or that emergency publishing is authorized.",
           "loc": 8,
           "cyclomatic_estimate": 4,
           "high_complexity": false
         },
         {
           "signature": "void mergeFromMasterAndPublishBranch(Namespace parentNamespace, Namespace childNamespace, Map parentNamespaceItems, String releaseName, String releaseComment, String operator, Release masterPreviousRelease, Release parentRelease, boolean isEmergencyPublish)",
-          "description": "Description unavailable.",
+          "description": "Merges parent namespace updates into a branch and publishes the result with multi-release coordination.",
           "loc": 34,
           "cyclomatic_estimate": 3,
           "high_complexity": false
         },
         {
           "signature": "Collection getBranchReleaseKeys(long releaseId)",
-          "description": "Description unavailable.",
+          "description": "Identifies all child branch releases associated with a parent release.",
           "loc": 24,
           "cyclomatic_estimate": 5,
           "high_complexity": false
         },
         {
           "signature": "Release publishBranchNamespace(Namespace parentNamespace, Namespace childNamespace, Map childNamespaceItems, String releaseName, String releaseComment, String operator, boolean isEmergencyPublish)",
-          "description": "Description unavailable.",
+          "description": "Publishes a child branch namespace without gray deletion keys.",
           "loc": 7,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Release masterRelease(Namespace namespace, String releaseName, String releaseComment, Map configurations, String operator, int releaseOperation, Map operationContext)",
-          "description": "Description unavailable.",
+          "description": "Creates a release for a master namespace with explicit configurations and operation metadata.",
           "loc": 14,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Release branchRelease(Namespace parentNamespace, Namespace childNamespace, String releaseName, String releaseComment, Map configurations, long baseReleaseId, String operator, int releaseOperation, boolean isEmergencyPublish, Collection branchReleaseKeys)",
-          "description": "Description unavailable.",
+          "description": "Creates a branch release derived from a base release with delta configurations and emergency support.",
           "loc": 34,
           "cyclomatic_estimate": 2,
           "high_complexity": false
         },
         {
           "signature": "Map mergeConfiguration(Map baseConfigurations, Map coverConfigurations)",
-          "description": "Description unavailable.",
+          "description": "Merges two configuration maps, with cover configurations overriding base configurations.",
           "loc": 13,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Map getNamespaceItems(Namespace namespace)",
-          "description": "Description unavailable.",
+          "description": "Retrieves all configuration items for a namespace as a key-value map.",
           "loc": 12,
           "cyclomatic_estimate": 3,
           "high_complexity": false
         },
         {
           "signature": "Release createRelease(Namespace namespace, String name, String comment, Map configurations, String operator)",
-          "description": "Description unavailable.",
+          "description": "Creates a release entity with provided configurations and metadata.",
           "loc": 21,
           "cyclomatic_estimate": 1,
           "high_complexity": false
@@ -12576,21 +12612,21 @@
         },
         {
           "signature": "void rollbackChildNamespace(String appId, String clusterName, String namespaceName, List parentNamespaceTwoLatestActiveRelease, String operator)",
-          "description": "Description unavailable.",
+          "description": "Cascades rollback to child namespaces when parent namespaces are rolled back.",
           "loc": 42,
           "cyclomatic_estimate": 5,
           "high_complexity": true
         },
         {
           "signature": "Map calculateChildNamespaceToPublishConfiguration(Map parentNamespaceOldConfiguration, Map parentNamespaceNewConfiguration, Map childNamespaceLatestActiveConfiguration, Collection branchReleaseKeys)",
-          "description": "Description unavailable.",
+          "description": "Computes the child namespace configuration after parent updates, preserving overrides.",
           "loc": 14,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Map calculateBranchModifiedItemsAccordingToRelease(Map masterReleaseConfigs, Map branchReleaseConfigs, Collection branchReleaseKeys)",
-          "description": "Description unavailable.",
+          "description": "Identifies items modified in branch releases relative to master release with complex delta logic (high cyclomatic complexity 8).",
           "loc": 37,
           "cyclomatic_estimate": 8,
           "high_complexity": false
@@ -12603,7 +12639,13 @@
           "high_complexity": false
         }
       ],
-      "notable_aspects": [],
+      "notable_aspects": [
+        "Complex release orchestration supporting master-branch hierarchy and gray deployments",
+        "High-complexity methods for rollback calculation and branch delta computation (cyclomatic complexity 7-8)",
+        "Distributed lock enforcement via NamespaceLockService for concurrent write protection",
+        "Multi-level transaction management for consistency across releases, history, and audit logs",
+        "Extensive configuration merging and delta calculation logic for hierarchical namespace support"
+      ],
       "security_findings": [],
       "depends_on": [
         "Audit",
@@ -12626,19 +12668,19 @@
       "package": "com.ctrip.framework.apollo.biz.service",
       "class_name": "ServerConfigService",
       "class_type": "service",
-      "description": "Description unavailable.",
+      "description": "Service for managing server-level configuration settings with support for cluster-specific overrides and lifecycle operations.",
       "rest_endpoints": [],
       "methods": [
         {
           "signature": "void ServerConfigService(ServerConfigRepository serverConfigRepository)",
-          "description": "Description unavailable.",
+          "description": "Constructor that injects the repository for accessing server configuration data.",
           "loc": 3,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "List findAll()",
-          "description": "Description unavailable.",
+          "description": "Retrieves all server configuration entries.",
           "loc": 4,
           "cyclomatic_estimate": 1,
           "high_complexity": false
@@ -12658,7 +12700,10 @@
           "high_complexity": false
         }
       ],
-      "notable_aspects": [],
+      "notable_aspects": [
+        "Simple, focused service for operational server-level configuration management",
+        "Cluster-scoped configuration support for multi-region deployments"
+      ],
       "security_findings": [],
       "depends_on": [
         "ServerConfig",
@@ -12674,19 +12719,19 @@
       "package": "com.ctrip.framework.apollo.biz.service",
       "class_name": "ServiceRegistryService",
       "class_type": "service",
-      "description": "Description unavailable.",
+      "description": "A service class that manages service registry persistence operations, providing methods to save, delete, and query service registry entries based on service names and time-based criteria.",
       "rest_endpoints": [],
       "methods": [
         {
           "signature": "void ServiceRegistryService(ServiceRegistryRepository repository)",
-          "description": "Description unavailable.",
+          "description": "Constructor that initializes the ServiceRegistryService with a ServiceRegistryRepository dependency for database access.",
           "loc": 3,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "ServiceRegistry saveIfNotExistByServiceNameAndUri(ServiceRegistry serviceRegistry)",
-          "description": "Description unavailable.",
+          "description": "Saves a service registry entry if no existing entry matches the same service name and URI, returning the persisted or existing registry.",
           "loc": 16,
           "cyclomatic_estimate": 2,
           "high_complexity": false
@@ -12700,7 +12745,7 @@
         },
         {
           "signature": "List findByServiceNameDataChangeLastModifiedTimeGreaterThan(String serviceName, LocalDateTime localDateTime)",
-          "description": "Description unavailable.",
+          "description": "Queries and returns a list of service registry entries for a given service name that have been modified after the specified time.",
           "loc": 5,
           "cyclomatic_estimate": 1,
           "high_complexity": false
@@ -12713,7 +12758,10 @@
           "high_complexity": false
         }
       ],
-      "notable_aspects": [],
+      "notable_aspects": [
+        "Transactional methods indicate data consistency concerns for delete operations.",
+        "Time-based query and deletion methods suggest support for registry lifecycle management and cleanup of stale entries."
+      ],
       "security_findings": [],
       "depends_on": [
         "ServiceRegistry",
@@ -12729,81 +12777,84 @@
       "package": "com.ctrip.framework.apollo.biz.utils",
       "class_name": "ConfigChangeContentBuilder",
       "class_type": "other",
-      "description": "Description unavailable.",
+      "description": "A builder utility for tracking and serializing configuration item changes (creates, updates, deletes) into a structured JSON format.",
       "rest_endpoints": [],
       "methods": [
         {
           "signature": "ConfigChangeContentBuilder createItem(Item item)",
-          "description": "Description unavailable.",
+          "description": "Adds a new item to the list of created items and returns this builder for method chaining.",
           "loc": 6,
           "cyclomatic_estimate": 2,
           "high_complexity": false
         },
         {
           "signature": "ConfigChangeContentBuilder updateItem(Item oldItem, Item newItem)",
-          "description": "Description unavailable.",
+          "description": "Records a change from an old item to a new item in the updates list and returns this builder for method chaining.",
           "loc": 7,
           "cyclomatic_estimate": 2,
           "high_complexity": false
         },
         {
           "signature": "ConfigChangeContentBuilder deleteItem(Item item)",
-          "description": "Description unavailable.",
+          "description": "Adds an item to the list of deleted items and returns this builder for method chaining.",
           "loc": 6,
           "cyclomatic_estimate": 2,
           "high_complexity": false
         },
         {
           "signature": "boolean hasContent()",
-          "description": "Description unavailable.",
+          "description": "Checks whether any configuration changes (creates, updates, or deletes) have been recorded.",
           "loc": 3,
           "cyclomatic_estimate": 3,
           "high_complexity": false
         },
         {
           "signature": "String build()",
-          "description": "Description unavailable.",
+          "description": "Serializes all recorded configuration changes into a JSON string representation.",
           "loc": 18,
           "cyclomatic_estimate": 4,
           "high_complexity": false
         },
         {
           "signature": "Item cloneItem(Item source)",
-          "description": "Description unavailable.",
+          "description": "Creates a deep copy of an Item object.",
           "loc": 7,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "ConfigChangeContentBuilder convertJsonString(String content)",
-          "description": "Description unavailable.",
+          "description": "Parses a JSON string and populates the builder's change lists from the parsed content, returning this builder for method chaining.",
           "loc": 3,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "List getCreateItems()",
-          "description": "Description unavailable.",
+          "description": "Returns the list of items that have been recorded as created.",
           "loc": 3,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "List getUpdateItems()",
-          "description": "Description unavailable.",
+          "description": "Returns the list of item pairs that have been recorded as updated.",
           "loc": 3,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "List getDeleteItems()",
-          "description": "Description unavailable.",
+          "description": "Returns the list of items that have been recorded as deleted.",
           "loc": 3,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         }
       ],
-      "notable_aspects": [],
+      "notable_aspects": [
+        "Implements the builder pattern for fluent API allowing chainable configuration change tracking",
+        "Handles bidirectional conversion between object representation and JSON serialization of config changes"
+      ],
       "security_findings": [],
       "depends_on": [
         "Item"
@@ -12818,12 +12869,12 @@
       "package": "com.ctrip.framework.apollo.biz.utils",
       "class_name": "ItemPair",
       "class_type": "other",
-      "description": "Description unavailable.",
+      "description": "A simple data holder representing a pair of old and new Item values for tracking configuration updates.",
       "rest_endpoints": [],
       "methods": [
         {
           "signature": "void ItemPair(Item oldItem, Item newItem)",
-          "description": "Description unavailable.",
+          "description": "Constructs an ItemPair with the old item value and new item value.",
           "loc": 4,
           "cyclomatic_estimate": 1,
           "high_complexity": false
@@ -12844,18 +12895,21 @@
       "package": "com.ctrip.framework.apollo.biz.utils",
       "class_name": "EntityManagerUtil",
       "class_type": "other",
-      "description": "Description unavailable.",
+      "description": "A Spring component utility for managing JPA EntityManager lifecycle, specifically for closing entity managers in asynchronous request contexts.",
       "rest_endpoints": [],
       "methods": [
         {
           "signature": "void closeEntityManager()",
-          "description": "Description unavailable.",
+          "description": "Closes the current EntityManager to prevent resource leaks in asynchronous request handling where Spring does not automatically manage lifecycle.",
           "loc": 9,
           "cyclomatic_estimate": 2,
           "high_complexity": false
         }
       ],
-      "notable_aspects": [],
+      "notable_aspects": [
+        "Designed specifically for async request handling where Spring framework does not automatically close the EntityManager",
+        "Requires cautious usage to avoid premature closure of needed database connections"
+      ],
       "security_findings": [],
       "depends_on": [],
       "churn": {
@@ -12868,18 +12922,20 @@
       "package": "com.ctrip.framework.apollo.biz.utils",
       "class_name": "ReleaseKeyGenerator",
       "class_type": "other",
-      "description": "Description unavailable.",
+      "description": "Generates unique release keys using timestamp, application metadata, and hashed values to uniquely identify configuration releases.",
       "rest_endpoints": [],
       "methods": [
         {
           "signature": "String generateReleaseKey(Namespace namespace)",
-          "description": "Description unavailable.",
+          "description": "Generates a unique release key combining timestamp, appId, cluster, namespace, and a hash of IP address and counter.",
           "loc": 3,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         }
       ],
-      "notable_aspects": [],
+      "notable_aspects": [
+        "Uses composite key generation strategy combining temporal and application-specific identifiers for release uniqueness"
+      ],
       "security_findings": [],
       "depends_on": [
         "Namespace"
@@ -12894,19 +12950,19 @@
       "package": "com.ctrip.framework.apollo.biz.utils",
       "class_name": "ReleaseMessageKeyGenerator",
       "class_type": "other",
-      "description": "Description unavailable.",
+      "description": "Generates and parses release message keys by combining application, cluster, and namespace identifiers.",
       "rest_endpoints": [],
       "methods": [
         {
           "signature": "String generate(String appId, String cluster, String namespace)",
-          "description": "Description unavailable.",
+          "description": "Generates a release message key from the provided application ID, cluster name, and namespace.",
           "loc": 3,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "List messageToList(String message)",
-          "description": "Description unavailable.",
+          "description": "Parses a release message key string and extracts the individual components (appId, cluster, namespace) into a list.",
           "loc": 9,
           "cyclomatic_estimate": 2,
           "high_complexity": false
@@ -12925,10 +12981,14 @@
       "package": "com.ctrip.framework.apollo.biz",
       "class_name": "AbstractIntegrationTest",
       "class_type": "other",
-      "description": "Description unavailable.",
+      "description": "Base class for Spring Boot integration tests configured to run with SpringJUnit4ClassRunner, transaction rollback, and a test configuration class that enables auto-configuration and component scanning.",
       "rest_endpoints": [],
       "methods": [],
-      "notable_aspects": [],
+      "notable_aspects": [
+        "Uses @Transactional with @Rollback for test isolation by rolling back database changes after each test",
+        "Configured with WebEnvironment.RANDOM_PORT for testing embedded web containers",
+        "Loads BizTestConfiguration which sets up the application context for integration testing"
+      ],
       "security_findings": [],
       "depends_on": [],
       "churn": {
@@ -12941,10 +13001,12 @@
       "package": "com.ctrip.framework.apollo.biz",
       "class_name": "AbstractUnitTest",
       "class_type": "other",
-      "description": "Description unavailable.",
+      "description": "Base class for unit tests configured to run with MockitoJUnitRunner for mock object management.",
       "rest_endpoints": [],
       "methods": [],
-      "notable_aspects": [],
+      "notable_aspects": [
+        "Uses MockitoJUnitRunner to enable Mockito annotations and automatic mock injection"
+      ],
       "security_findings": [],
       "depends_on": [],
       "churn": {
@@ -12957,10 +13019,13 @@
       "package": "com.ctrip.framework.apollo.biz",
       "class_name": "BizTestConfiguration",
       "class_type": "config",
-      "description": "Description unavailable.",
+      "description": "Spring configuration class that enables auto-configuration and component scanning for integration tests in the Apollo business layer.",
       "rest_endpoints": [],
       "methods": [],
-      "notable_aspects": [],
+      "notable_aspects": [
+        "Component scanning includes ApolloCommonConfig and ApolloBizConfig to load necessary business components",
+        "Auto-configuration enabled to provide Spring Boot's default configuration setup"
+      ],
       "security_findings": [],
       "depends_on": [],
       "churn": {
@@ -12973,95 +13038,99 @@
       "package": "com.ctrip.framework.apollo.biz.config",
       "class_name": "BizConfigTest",
       "class_type": "config",
-      "description": "Description unavailable.",
+      "description": "A JUnit test class that validates configuration behavior in the Apollo business logic module, testing various configuration properties and their parsing/override behavior.",
       "rest_endpoints": [],
       "methods": [
         {
           "signature": "void setUp()",
-          "description": "Description unavailable.",
+          "description": "Initializes test fixtures before each test method execution.",
           "loc": 5,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "void testReleaseMessageNotificationBatch()",
-          "description": "Description unavailable.",
+          "description": "Tests the default release message notification batch size configuration.",
           "loc": 7,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "void testReleaseMessageNotificationBatchWithDefaultValue()",
-          "description": "Description unavailable.",
+          "description": "Tests release message notification batch size when default values are applied.",
           "loc": 5,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "void testReleaseMessageNotificationBatchWithInvalidNumber()",
-          "description": "Description unavailable.",
+          "description": "Tests that invalid numeric input for release message notification batch is handled gracefully.",
           "loc": 8,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "void testReleaseHistoryRetentionSize()",
-          "description": "Description unavailable.",
+          "description": "Tests the release history retention size configuration.",
           "loc": 7,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "void testReleaseHistoryRetentionSizeOverride()",
-          "description": "Description unavailable.",
+          "description": "Tests that release history retention size can be overridden from the default value.",
           "loc": 20,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "void testAppIdValueLengthLimitOverride()",
-          "description": "Description unavailable.",
+          "description": "Tests that the application ID value length limit configuration can be overridden.",
           "loc": 40,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "void testReleaseMessageNotificationBatchWithNAN()",
-          "description": "Description unavailable.",
+          "description": "Tests that non-numeric input (NaN) for release message notification batch is handled appropriately.",
           "loc": 7,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "void testCheckInt()",
-          "description": "Description unavailable.",
+          "description": "Tests integer validation or parsing logic within the configuration.",
           "loc": 16,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "void testIsConfigServiceCacheKeyIgnoreCase()",
-          "description": "Description unavailable.",
+          "description": "Tests that configuration service cache keys are handled in a case-insensitive manner.",
           "loc": 5,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "void testNamespaceNumLimitWhite_filtersEmptyItems()",
-          "description": "Description unavailable.",
+          "description": "Tests that namespace number limit whitelist filtering correctly removes empty items.",
           "loc": 9,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "void testIsAccessKeyAutoProvisionEnabled()",
-          "description": "Description unavailable.",
+          "description": "Tests the access key auto-provisioning enable/disable configuration.",
           "loc": 6,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         }
       ],
-      "notable_aspects": [],
+      "notable_aspects": [
+        "Uses MockitoJUnitRunner for mock-based testing",
+        "Tests configuration parsing and override behavior with various input edge cases including invalid numbers and NaN values",
+        "Focuses on validating configuration defaults and custom value handling"
+      ],
       "security_findings": [],
       "depends_on": [
         "BizDBPropertySource",
@@ -13077,12 +13146,12 @@
       "package": "com.ctrip.framework.apollo.biz.entity",
       "class_name": "JpaMapFieldJsonConverterTest",
       "class_type": "entity",
-      "description": "Description unavailable.",
+      "description": "Unit test class for JpaMapFieldJsonConverter that validates the conversion logic between database column representations and entity map attributes using JSON serialization.",
       "rest_endpoints": [],
       "methods": [
         {
           "signature": "String readAllContentOf(String path)",
-          "description": "Description unavailable.",
+          "description": "Reads and returns the entire file content from the specified path as a string.",
           "loc": 5,
           "cyclomatic_estimate": 1,
           "high_complexity": false
@@ -13150,7 +13219,7 @@
       "package": "com.ctrip.framework.apollo.biz.grayReleaseRule",
       "class_name": "GrayReleaseRulesHolderTest",
       "class_type": "other",
-      "description": "Description unavailable.",
+      "description": "A test class for GrayReleaseRulesHolder that validates the scanning and application of gray release rules to configurations using Mockito for dependency injection.",
       "rest_endpoints": [],
       "methods": [
         {
@@ -13189,7 +13258,10 @@
           "high_complexity": false
         }
       ],
-      "notable_aspects": [],
+      "notable_aspects": [
+        "HIGH COMPLEXITY flag on testScanGrayReleaseRules suggests extensive test logic covering multiple scenarios or edge cases",
+        "Test class uses factory helper methods (assembleGrayReleaseRule, assembleRuleItem, assembleReleaseMessage) to construct test data, indicating structured test setup"
+      ],
       "security_findings": [],
       "depends_on": [
         "BizConfig",
@@ -13208,7 +13280,7 @@
       "package": "com.ctrip.framework.apollo.biz.message",
       "class_name": "DatabaseMessageSenderTest",
       "class_type": "other",
-      "description": "Description unavailable.",
+      "description": "Unit test class for DatabaseMessageSender that verifies message sending behavior, including success cases, unsupported message handling, and failure scenarios.",
       "rest_endpoints": [],
       "methods": [
         {
@@ -13257,7 +13329,7 @@
       "package": "com.ctrip.framework.apollo.biz.message",
       "class_name": "ReleaseMessageScannerTest",
       "class_type": "other",
-      "description": "Description unavailable.",
+      "description": "Unit test class for ReleaseMessageScanner that validates message scanning and notification behaviors, including gap detection scenarios.",
       "rest_endpoints": [],
       "methods": [
         {
@@ -13289,7 +13361,9 @@
           "high_complexity": false
         }
       ],
-      "notable_aspects": [],
+      "notable_aspects": [
+        "testScanMessageWithGapAndNotifyMessageListener has high complexity (34 LOC), suggesting intricate gap-handling test logic"
+      ],
       "security_findings": [],
       "depends_on": [
         "AbstractUnitTest",
@@ -13307,40 +13381,40 @@
       "package": "com.ctrip.framework.apollo.biz",
       "class_name": "MockBeanFactory",
       "class_type": "other",
-      "description": "Description unavailable.",
+      "description": "Factory class for creating mock domain objects used in tests, providing convenience methods to instantiate Namespace, AppNamespace, ServerConfig, Release, and Item objects with predefined values.",
       "rest_endpoints": [],
       "methods": [
         {
           "signature": "Namespace mockNamespace(String appId, String clusterName, String namespaceName)",
-          "description": "Description unavailable.",
+          "description": "Creates and returns a mock Namespace object with the specified application ID, cluster name, and namespace name.",
           "loc": 9,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "AppNamespace mockAppNamespace(String appId, String name, boolean isPublic)",
-          "description": "Description unavailable.",
+          "description": "Creates and returns a mock AppNamespace object with the specified application ID, name, and public visibility flag.",
           "loc": 9,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "ServerConfig mockServerConfig(String key, String value, String cluster)",
-          "description": "Description unavailable.",
+          "description": "Creates and returns a mock ServerConfig object with the specified configuration key, value, and cluster.",
           "loc": 9,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Release mockRelease(long releaseId, String releaseKey, String appId, String clusterName, String groupName, String configurations)",
-          "description": "Description unavailable.",
+          "description": "Creates and returns a mock Release object with the specified release ID, release key, application ID, cluster name, group name, and configurations.",
           "loc": 13,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Item mockItem(long id, long namespaceId, String itemKey, String itemValue, int lineNum)",
-          "description": "Description unavailable.",
+          "description": "Creates and returns a mock Item object with the specified ID, namespace ID, item key, item value, and line number.",
           "loc": 10,
           "cyclomatic_estimate": 1,
           "high_complexity": false
@@ -13369,12 +13443,12 @@
       "package": "com.ctrip.framework.apollo.biz.registry.configuration",
       "class_name": "ApolloServiceRegistryAutoConfigurationNotEnabledTest",
       "class_type": "other",
-      "description": "Description unavailable.",
+      "description": "A Spring Boot test that verifies database discovery features do not cause ConfigService or AdminService startup failures when the feature is disabled.",
       "rest_endpoints": [],
       "methods": [
         {
           "signature": "void assertNoSuchBean(Class requiredType)",
-          "description": "Description unavailable.",
+          "description": "Helper method that asserts a bean of the specified type is not present in the application context.",
           "loc": 4,
           "cyclomatic_estimate": 1,
           "high_complexity": false
@@ -13387,7 +13461,10 @@
           "high_complexity": false
         }
       ],
-      "notable_aspects": [],
+      "notable_aspects": [
+        "Test class validates graceful degradation when optional feature (database discovery) is disabled",
+        "Uses SpringBootTest with explicit ContextConfiguration to load only necessary auto-configurations"
+      ],
       "security_findings": [],
       "depends_on": [
         "ApolloServiceRegistryClearApplicationRunner",
@@ -13408,18 +13485,21 @@
       "package": "com.ctrip.framework.apollo.biz.registry.configuration.support",
       "class_name": "ApolloServiceRegistryClearApplicationRunnerIntegrationTest",
       "class_type": "other",
-      "description": "Description unavailable.",
+      "description": "An integration test class that verifies the functionality of clearing unhealthy service instances from the Apollo service registry, using Spring Test annotations to configure the application context with service registry and discovery components.",
       "rest_endpoints": [],
       "methods": [
         {
           "signature": "void clearUnhealthyInstances()",
-          "description": "Description unavailable.",
+          "description": "Tests that unhealthy service instances are properly cleared from the Apollo service registry during application lifecycle.",
           "loc": 40,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         }
       ],
-      "notable_aspects": [],
+      "notable_aspects": [
+        "Integration test configured with specific property sources (apollo.service.registry.enabled, apollo.service.discovery.enabled) and test service configuration",
+        "Uses @ContextConfiguration to explicitly load ApolloServiceRegistryAutoConfiguration and ApolloServiceDiscoveryAutoConfiguration beans"
+      ],
       "security_findings": [],
       "depends_on": [
         "AbstractIntegrationTest",
@@ -13438,7 +13518,7 @@
       "package": "com.ctrip.framework.apollo.biz.registry",
       "class_name": "DatabaseDiscoveryClientAlwaysAddSelfInstanceDecoratorImplTest",
       "class_type": "other",
-      "description": "Description unavailable.",
+      "description": "Test class for the DatabaseDiscoveryClientAlwaysAddSelfInstanceDecoratorImpl decorator, verifying that the decorator adds the self instance to discovery results appropriately.",
       "rest_endpoints": [],
       "methods": [
         {
@@ -13476,7 +13556,7 @@
       "package": "com.ctrip.framework.apollo.biz.registry",
       "class_name": "DatabaseDiscoveryClientImplTest",
       "class_type": "other",
-      "description": "Description unavailable.",
+      "description": "Test class for the DatabaseDiscoveryClientImpl, validating filtering and discovery functionality for service instances.",
       "rest_endpoints": [],
       "methods": [
         {
@@ -13525,7 +13605,7 @@
       "package": "com.ctrip.framework.apollo.biz.registry",
       "class_name": "DatabaseDiscoveryClientMemoryCacheDecoratorImplTest",
       "class_type": "other",
-      "description": "Description unavailable.",
+      "description": "Test class for the DatabaseDiscoveryClientMemoryCacheDecoratorImpl decorator, verifying caching behavior and consistency with database updates.",
       "rest_endpoints": [],
       "methods": [
         {
@@ -13571,7 +13651,9 @@
           "high_complexity": false
         }
       ],
-      "notable_aspects": [],
+      "notable_aspects": [
+        "High complexity test for cache consistency during database updates indicates potential for stale data or race conditions"
+      ],
       "security_findings": [],
       "depends_on": [],
       "churn": {
@@ -13584,7 +13666,7 @@
       "package": "com.ctrip.framework.apollo.biz.registry",
       "class_name": "DatabaseDiscoveryIntegrationTest",
       "class_type": "other",
-      "description": "Description unavailable.",
+      "description": "Integration test for the complete database-backed service discovery flow, including registration, discovery, and deletion of service instances.",
       "rest_endpoints": [],
       "methods": [
         {
@@ -13616,7 +13698,9 @@
           "high_complexity": false
         }
       ],
-      "notable_aspects": [],
+      "notable_aspects": [
+        "Requires Spring context with ApolloServiceRegistryAutoConfiguration and ApolloServiceDiscoveryAutoConfiguration; tests cluster-based isolation and multi-instance scenarios"
+      ],
       "security_findings": [],
       "depends_on": [
         "AbstractIntegrationTest",
@@ -13633,7 +13717,7 @@
       "package": "com.ctrip.framework.apollo.biz.registry",
       "class_name": "DatabaseDiscoveryWithoutDecoratorIntegrationTest",
       "class_type": "other",
-      "description": "Description unavailable.",
+      "description": "Integration test for service discovery without decorator layers, validating core discovery behavior independent of caching or self-instance decorators.",
       "rest_endpoints": [],
       "methods": [
         {
@@ -13665,7 +13749,9 @@
           "high_complexity": false
         }
       ],
-      "notable_aspects": [],
+      "notable_aspects": [
+        "Requires ApolloServiceDiscoveryWithoutDecoratorAutoConfiguration to test undecorated discovery behavior; serves as baseline for comparison with decorator tests"
+      ],
       "security_findings": [],
       "depends_on": [
         "AbstractIntegrationTest",
@@ -13685,7 +13771,7 @@
       "package": "com.ctrip.framework.apollo.biz.registry",
       "class_name": "ApolloServiceDiscoveryWithoutDecoratorAutoConfiguration",
       "class_type": "config",
-      "description": "Description unavailable.",
+      "description": "Spring auto-configuration class that provides an undecorated DatabaseDiscoveryClient bean for testing service discovery without caching or self-instance decoration.",
       "rest_endpoints": [],
       "methods": [
         {
@@ -13696,7 +13782,9 @@
           "high_complexity": false
         }
       ],
-      "notable_aspects": [],
+      "notable_aspects": [
+        "Configuration is conditionally enabled and auto-configured before ApolloServiceDiscoveryAutoConfiguration to provide undecorated baseline; depends on ApolloServiceDiscoveryAutoConfiguration bean to exist"
+      ],
       "security_findings": [],
       "depends_on": [
         "AbstractIntegrationTest",
@@ -13715,12 +13803,12 @@
       "package": "com.ctrip.framework.apollo.biz.registry",
       "class_name": "ServiceInstanceFactory",
       "class_type": "other",
-      "description": "Description unavailable.",
+      "description": "A factory utility class for creating ServiceInstance objects with specified service name, URI, and cluster information.",
       "rest_endpoints": [],
       "methods": [
         {
           "signature": "ServiceInstance newServiceInstance(String serviceName, String uri, String cluster)",
-          "description": "Description unavailable.",
+          "description": "Creates and returns a new ServiceInstance with the provided service name, URI, and cluster identifier.",
           "loc": 7,
           "cyclomatic_estimate": 1,
           "high_complexity": false
@@ -13738,16 +13826,29 @@
     }
   ],
   "metadata": {
-    "generated_at": "2026-07-12T19:21:47.747270+00:00",
+    "generated_at": "2026-08-28T00:56:39.647276+00:00",
     "model_used": "claude-haiku-4-5",
     "total_files_parsed": 200,
     "parse_errors": [],
-    "llm_calls_made": 48,
-    "llm_calls_cached": 39,
-    "total_input_tokens": 96631,
-    "total_output_tokens": 59253,
-    "estimated_cost_usd": 0.392896,
-    "security_findings_total": 16
+    "llm_calls_made": 14,
+    "llm_calls_cached": 169,
+    "total_input_tokens": 34512,
+    "total_output_tokens": 13743,
+    "estimated_cost_usd": 0.103227,
+    "security_findings_total": 16,
+    "total_lines_of_code": 22319,
+    "estimated_total_tokens": 244155,
+    "llm_input_characters": 210028,
+    "estimated_llm_tokens": 69095,
+    "token_savings_pct": 71.7,
+    "security_findings_high": 15,
+    "security_findings_medium": 0,
+    "security_findings_low": 1,
+    "review_loc_per_hour_assumed": 200,
+    "reviewer_hourly_rate_usd_assumed": 75.0,
+    "estimated_manual_review_hours": 111.6,
+    "estimated_manual_review_cost_usd": 8369.62,
+    "estimated_cost_savings_usd": 8369.52
   },
   "dependency_graph": [
     {

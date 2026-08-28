@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark">
-<title>repo - Codebase Analysis Report</title>
+<title>Apollo - Codebase Analysis Report</title>
 <style>
   /* Dark theme -- chrome/ink/status roles are the validated dark-surface
      steps of the standard palette (see the dataviz skill's palette.md),
@@ -102,6 +102,13 @@
   }
   .stat-card .value { font-size: 24px; font-weight: 700; color: var(--accent); }
   .stat-card .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .stat-card.highlight { background: var(--success-light); border-color: rgba(25,158,112,0.35); }
+  .stat-card.highlight .value { color: #5fe0bb; }
+  .stat-card.severity-high { background: var(--danger-light); border-color: rgba(230,103,103,0.35); }
+  .stat-card.severity-high .value { color: #f3a9a9; }
+  .stat-card.severity-medium { background: var(--warning-light); border-color: rgba(250,178,25,0.35); }
+  .stat-card.severity-medium .value { color: #f0c14f; }
+  .stats-caption { font-size: 12px; color: var(--muted); margin: -18px 0 28px; }
 
   .module-nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 28px; }
   .module-nav a {
@@ -386,14 +393,60 @@
 <body>
 
 <header class="hero">
-  <h1>repo</h1>
-  <p class="desc">Overview generation failed -- see run logs for details.</p>
+  <h1>Apollo</h1>
+  <p class="desc">Apollo is a reliable, centralized configuration management system designed for microservice and distributed application scenarios. It provides unified management of configurations across different environments, clusters, and applications with real-time hot-release capabilities. The system includes a server component built on Spring Boot and Spring Cloud, along with SDKs for Java and .NET that integrate seamlessly with various runtime environments.</p>
   <div class="generated-meta">
     <span aria-hidden="true">🕐</span>
-    Generated July 12, 2026 at 07:21 PM UTC
+    Generated August 28, 2026 at 12:56 AM UTC
+  </div>
+  
+  <div class="badges">
+    <span class="badges-label">Technology Stack:</span>
+    
+    <span class="tech-badge">Spring Boot 4.0.5</span>
+    
+    <span class="tech-badge">Spring Cloud 2025.1.1</span>
+    
+    <span class="tech-badge">Spring Cloud Alibaba 2025.1.0.0</span>
+    
+    <span class="tech-badge">Spring Data JPA</span>
+    
+    <span class="tech-badge">Jakarta Mail</span>
+    
+    <span class="tech-badge">Apache HttpClient 4.5.14</span>
+    
+    <span class="tech-badge">Guava 32.0.0</span>
+    
+    <span class="tech-badge">Apache Commons Lang3 3.18.0</span>
+    
+    <span class="tech-badge">Javassist 3.23.1-GA</span>
+    
   </div>
   
   
+  <div class="architecture-note">Apollo is organized into a layered, modular architecture with clear separation of concerns: Controllers expose REST APIs for managing configurations (apps, clusters, namespaces, releases, items); Services coordinate business logic across repositories and domain entities; Repositories provide data access via Spring Data JPA; Entities represent core domain objects with soft-delete support and audit tracking. Cross-cutting concerns are handled through AOP aspects (namespace locking, audit span capture), servlet filters (authentication), and HTTP interceptors. The system includes audit logging with distributed tracing support, gray release management with rule caching, message-based release notification, and database-backed service discovery and registry components. Configuration is managed through Spring Boot auto-configuration with feature toggles for audit logging and service registry functionality.</div>
+  
+  
+  <div class="key-modules">
+    <span class="key-modules-label">Domain Modules:</span>
+    
+    <span class="module-chip">Application Management</span>
+    
+    <span class="module-chip">Namespace and Cluster Configuration</span>
+    
+    <span class="module-chip">Release Management and Gray Deployments</span>
+    
+    <span class="module-chip">Configuration Items (Key-Value Pairs)</span>
+    
+    <span class="module-chip">Audit Logging and Tracing</span>
+    
+    <span class="module-chip">Access Control and Authentication</span>
+    
+    <span class="module-chip">Service Discovery and Registry</span>
+    
+    <span class="module-chip">Release Messaging and Notifications</span>
+    
+  </div>
   
 </header>
 
@@ -405,9 +458,26 @@
     <div class="stat-card"><div class="value">74</div><div class="label">REST Endpoints</div></div>
     <div class="stat-card"><div class="value">22</div><div class="label">High Complexity</div></div>
     <div class="stat-card"><div class="value">16</div><div class="label">Security Findings</div></div>
-    <div class="stat-card"><div class="value">44.8%</div><div class="label">Cache Hit Rate</div></div>
-    <div class="stat-card"><div class="value">$0.3929</div><div class="label">Estimated Cost</div></div>
+    <div class="stat-card severity-high"><div class="value">15</div><div class="label">High Severity</div></div>
+    <div class="stat-card severity-medium"><div class="value">0</div><div class="label">Medium Severity</div></div>
+    <div class="stat-card"><div class="value">1</div><div class="label">Low Severity</div></div>
+    <div class="stat-card"><div class="value">92.3%</div><div class="label">Cache Hit Rate</div></div>
+    <div class="stat-card"><div class="value">$0.1032</div><div class="label">Estimated Cost</div></div>
+    <div class="stat-card"><div class="value">22,319</div><div class="label">Lines of Code</div></div>
+    <div class="stat-card"><div class="value">244,155</div><div class="label">Est. Repo Tokens</div></div>
+    <div class="stat-card"><div class="value">210,028</div><div class="label">Chars Sent to LLM</div></div>
+    <div class="stat-card"><div class="value">69,095</div><div class="label">Tokens Sent to LLM</div></div>
+    <div class="stat-card highlight"><div class="value">71.7%</div><div class="label">Token Cost Saved</div></div>
+    <div class="stat-card"><div class="value">111.6</div><div class="label">Est. Manual Review Hours</div></div>
+    <div class="stat-card"><div class="value">$8,369.62</div><div class="label">Est. Manual Review Cost</div></div>
+    <div class="stat-card highlight"><div class="value">$8,369.52</div><div class="label">Est. Cost Savings</div></div>
   </div>
+  <p class="stats-caption">
+    Manual-review estimate assumes 200 LOC/hour at
+    $75/hour
+    (<code>--review-loc-per-hour</code> / <code>--reviewer-hourly-rate</code>) --
+    a labeled estimate, not a measured figure.
+  </p>
 
   
   <nav class="module-nav" aria-label="Jump to module">
@@ -917,7 +987,7 @@
       <summary>
         <span aria-hidden="true">💡</span>
         <span>Notable Aspects</span>
-        <span class="count-badge">232</span>
+        <span class="count-badge">279</span>
       </summary>
       
       <div class="findings-subcategories">
@@ -926,7 +996,7 @@
           <summary>
             <span aria-hidden="true">🔹</span>
             <span>Other</span>
-            <span class="count-badge">73</span>
+            <span class="count-badge">100</span>
           </summary>
           <div class="findings-list">
             
@@ -1098,6 +1168,11 @@
             <div class="finding-item">
               <span class="finding-text">Includes distributed tracing fields (traceId, spanId, parentSpanId, followsFromSpanId) for request correlation across services</span>
               <span class="source">ApolloAuditLog &mdash; apollo-audit/apollo-audit-impl/src/main/java/com/ctrip/framework/apollo/audit/entity/ApolloAuditLog.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Supports distributed tracing with traceId, spanId, parentSpanId, and followsFromSpanId fields</span>
+              <span class="source">Builder &mdash; apollo-audit/apollo-audit-impl/src/main/java/com/ctrip/framework/apollo/audit/entity/ApolloAuditLogDataInfluence.java</span>
             </div>
             
             <div class="finding-item">
@@ -1295,6 +1370,136 @@
               <span class="source">ItemSetService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/ItemSetService.java</span>
             </div>
             
+            <div class="finding-item">
+              <span class="finding-text">Distributed locking mechanism to prevent concurrent modifications to namespaces</span>
+              <span class="source">NamespaceLockService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/NamespaceLockService.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Transactional consistency for lock acquisition and release operations</span>
+              <span class="source">NamespaceLockService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/NamespaceLockService.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Complex hierarchical namespace relationships with parent-child branching support</span>
+              <span class="source">NamespaceService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/NamespaceService.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Automated retention policy enforcement to prevent unbounded history growth</span>
+              <span class="source">ReleaseHistoryService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/ReleaseHistoryService.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Transactional consistency for history creation and deletion</span>
+              <span class="source">ReleaseHistoryService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/ReleaseHistoryService.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Lightweight service focused on message-based change notification lookups</span>
+              <span class="source">ReleaseMessageService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/ReleaseMessageService.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Complex release orchestration supporting master-branch hierarchy and gray deployments</span>
+              <span class="source">ReleaseService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/ReleaseService.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Distributed lock enforcement via NamespaceLockService for concurrent write protection</span>
+              <span class="source">ReleaseService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/ReleaseService.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Simple, focused service for operational server-level configuration management</span>
+              <span class="source">ServerConfigService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/ServerConfigService.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Cluster-scoped configuration support for multi-region deployments</span>
+              <span class="source">ServerConfigService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/ServerConfigService.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Transactional methods indicate data consistency concerns for delete operations.</span>
+              <span class="source">ServiceRegistryService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/ServiceRegistryService.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Handles bidirectional conversion between object representation and JSON serialization of config changes</span>
+              <span class="source">ConfigChangeContentBuilder &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/utils/ConfigChangeContentBuilder.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Designed specifically for async request handling where Spring framework does not automatically close the EntityManager</span>
+              <span class="source">EntityManagerUtil &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/utils/EntityManagerUtil.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Requires cautious usage to avoid premature closure of needed database connections</span>
+              <span class="source">EntityManagerUtil &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/utils/EntityManagerUtil.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Uses composite key generation strategy combining temporal and application-specific identifiers for release uniqueness</span>
+              <span class="source">ReleaseKeyGenerator &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/utils/ReleaseKeyGenerator.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Configured with WebEnvironment.RANDOM_PORT for testing embedded web containers</span>
+              <span class="source">AbstractIntegrationTest &mdash; apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/AbstractIntegrationTest.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Loads BizTestConfiguration which sets up the application context for integration testing</span>
+              <span class="source">AbstractIntegrationTest &mdash; apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/AbstractIntegrationTest.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Uses MockitoJUnitRunner to enable Mockito annotations and automatic mock injection</span>
+              <span class="source">AbstractUnitTest &mdash; apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/AbstractUnitTest.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Component scanning includes ApolloCommonConfig and ApolloBizConfig to load necessary business components</span>
+              <span class="source">BizTestConfiguration &mdash; apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/BizTestConfiguration.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Auto-configuration enabled to provide Spring Boot&#39;s default configuration setup</span>
+              <span class="source">BizTestConfiguration &mdash; apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/BizTestConfiguration.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Uses MockitoJUnitRunner for mock-based testing</span>
+              <span class="source">BizConfigTest &mdash; apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/config/BizConfigTest.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Uses SpringBootTest with explicit ContextConfiguration to load only necessary auto-configurations</span>
+              <span class="source">ApolloServiceRegistryAutoConfigurationNotEnabledTest &mdash; apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/registry/configuration/ApolloServiceRegistryAutoConfigurationNotEnabledTest.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Integration test configured with specific property sources (apollo.service.registry.enabled, apollo.service.discovery.enabled) and test service configuration</span>
+              <span class="source">ApolloServiceRegistryClearApplicationRunnerIntegrationTest &mdash; apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/registry/configuration/support/ApolloServiceRegistryClearApplicationRunnerIntegrationTest.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Uses @ContextConfiguration to explicitly load ApolloServiceRegistryAutoConfiguration and ApolloServiceDiscoveryAutoConfiguration beans</span>
+              <span class="source">ApolloServiceRegistryClearApplicationRunnerIntegrationTest &mdash; apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/registry/configuration/support/ApolloServiceRegistryClearApplicationRunnerIntegrationTest.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Requires Spring context with ApolloServiceRegistryAutoConfiguration and ApolloServiceDiscoveryAutoConfiguration; tests cluster-based isolation and multi-instance scenarios</span>
+              <span class="source">DatabaseDiscoveryIntegrationTest &mdash; apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/registry/DatabaseDiscoveryIntegrationTest.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Configuration is conditionally enabled and auto-configured before ApolloServiceDiscoveryAutoConfiguration to provide undecorated baseline; depends on ApolloServiceDiscoveryAutoConfiguration bean to exist</span>
+              <span class="source">ApolloServiceDiscoveryWithoutDecoratorAutoConfiguration &mdash; apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/registry/DatabaseDiscoveryWithoutDecoratorIntegrationTest.java</span>
+            </div>
+            
           </div>
         </details>
         
@@ -1302,7 +1507,7 @@
           <summary>
             <span aria-hidden="true">📝</span>
             <span>Logging &amp; Observability</span>
-            <span class="count-badge">56</span>
+            <span class="count-badge">64</span>
           </summary>
           <div class="findings-list">
             
@@ -1404,6 +1609,11 @@
             <div class="finding-item">
               <span class="finding-text">Linked to parent ApolloAuditLog via spanId foreign key relationship</span>
               <span class="source">ApolloAuditLogDataInfluence &mdash; apollo-audit/apollo-audit-impl/src/main/java/com/ctrip/framework/apollo/audit/entity/ApolloAuditLogDataInfluence.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Captures before/after values to track data mutations in audit records</span>
+              <span class="source">Builder &mdash; apollo-audit/apollo-audit-impl/src/main/java/com/ctrip/framework/apollo/audit/entity/ApolloAuditLogDataInfluence.java</span>
             </div>
             
             <div class="finding-item">
@@ -1586,6 +1796,41 @@
               <span class="source">NamespaceBranchService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/NamespaceBranchService.java</span>
             </div>
             
+            <div class="finding-item">
+              <span class="finding-text">Extensive dependency injection with 13 collaborating services indicating complex business logic orchestration</span>
+              <span class="source">NamespaceService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/NamespaceService.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Audit trail integration for all write operations</span>
+              <span class="source">NamespaceService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/NamespaceService.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">High-complexity cleanup logic (cyclomatic complexity 5)</span>
+              <span class="source">ReleaseHistoryService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/ReleaseHistoryService.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Multi-level transaction management for consistency across releases, history, and audit logs</span>
+              <span class="source">ReleaseService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/ReleaseService.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Extensive configuration merging and delta calculation logic for hierarchical namespace support</span>
+              <span class="source">ReleaseService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/ReleaseService.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">HIGH COMPLEXITY flag on testScanGrayReleaseRules suggests extensive test logic covering multiple scenarios or edge cases</span>
+              <span class="source">GrayReleaseRulesHolderTest &mdash; apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/grayReleaseRule/GrayReleaseRulesHolderTest.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">testScanMessageWithGapAndNotifyMessageListener has high complexity (34 LOC), suggesting intricate gap-handling test logic</span>
+              <span class="source">ReleaseMessageScannerTest &mdash; apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/message/ReleaseMessageScannerTest.java</span>
+            </div>
+            
           </div>
         </details>
         
@@ -1593,7 +1838,7 @@
           <summary>
             <span aria-hidden="true">🗄️</span>
             <span>Persistence &amp; Data Access</span>
-            <span class="count-badge">41</span>
+            <span class="count-badge">43</span>
           </summary>
           <div class="findings-list">
             
@@ -1802,10 +2047,121 @@
               <span class="source">ReleaseRepository &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/repository/ReleaseRepository.java</span>
             </div>
             
+            <div class="finding-item">
+              <span class="finding-text">Time-based query and deletion methods suggest support for registry lifecycle management and cleanup of stale entries.</span>
+              <span class="source">ServiceRegistryService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/ServiceRegistryService.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Uses @Transactional with @Rollback for test isolation by rolling back database changes after each test</span>
+              <span class="source">AbstractIntegrationTest &mdash; apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/AbstractIntegrationTest.java</span>
+            </div>
+            
           </div>
         </details>
         
         <details class="findings-subcategory" style="--sub-color: #008300;">
+          <summary>
+            <span aria-hidden="true">🧩</span>
+            <span>Design Patterns &amp; Mapping</span>
+            <span class="count-badge">18</span>
+          </summary>
+          <div class="findings-list">
+            
+            <div class="finding-item">
+              <span class="finding-text">Helper transformation methods (transform2PageDTO, transformReleaseHistory2DTO) suggest consistent DTO conversion pattern for API responses</span>
+              <span class="source">ReleaseHistoryController &mdash; apollo-adminservice/src/main/java/com/ctrip/framework/apollo/adminservice/controller/ReleaseHistoryController.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Demonstrates pattern of testing both successful and error paths for each CRUD operation</span>
+              <span class="source">ItemSetControllerTest &mdash; apollo-adminservice/src/test/java/com/ctrip/framework/apollo/adminservice/controller/ItemSetControllerTest.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Demonstrates multi-cluster isolation pattern where configuration keys can exist across multiple clusters with cluster-specific semantics</span>
+              <span class="source">ServerConfigControllerTest &mdash; apollo-adminservice/src/test/java/com/ctrip/framework/apollo/adminservice/controller/ServerConfigControllerTest.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Implements distributed tracing pattern with span context propagation via HTTP headers</span>
+              <span class="source">ApolloAuditTracer &mdash; apollo-audit/apollo-audit-impl/src/main/java/com/ctrip/framework/apollo/audit/context/ApolloAuditTracer.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Implements the Builder design pattern with fluent method chaining for most configuration methods</span>
+              <span class="source">AuditSpanBuilder &mdash; apollo-audit/apollo-audit-impl/src/main/java/com/ctrip/framework/apollo/audit/context/ApolloAuditTracer.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Implements the Builder design pattern for fluent object construction</span>
+              <span class="source">Builder &mdash; apollo-audit/apollo-audit-impl/src/main/java/com/ctrip/framework/apollo/audit/entity/ApolloAuditLogDataInfluence.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">@Converter(autoApply=true) annotation indicates this converter is automatically applied to all Map fields in entities</span>
+              <span class="source">JpaMapFieldJsonConverter &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/entity/JpaMapFieldJsonConverter.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Dynamic URL refresh capability suggests support for multi-environment deployment patterns</span>
+              <span class="source">ApolloEurekaClientConfig &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/eureka/ApolloEurekaClientConfig.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Observer pattern implementation with listener registration and notification mechanism</span>
+              <span class="source">ReleaseMessageScanner &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/message/ReleaseMessageScanner.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Implements the decorator pattern to add resilience against database failures</span>
+              <span class="source">DatabaseDiscoveryClientAlwaysAddSelfInstanceDecoratorImpl &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/registry/DatabaseDiscoveryClientAlwaysAddSelfInstanceDecoratorImpl.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Uses soft-delete pattern with isDeleted flag and deletedAt timestamp rather than hard deletion</span>
+              <span class="source">AppNamespaceRepository &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/repository/AppNamespaceRepository.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Uses soft-delete pattern with isDeleted flag and deletedAt timestamp</span>
+              <span class="source">CommitRepository &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/repository/CommitRepository.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Implements soft delete pattern with isDeleted flag, deletedAt timestamp, and operator tracking</span>
+              <span class="source">ItemRepository &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/repository/ItemRepository.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Implements soft delete pattern with isDeleted flag, deletedAt timestamp, and operator tracking via batch delete method</span>
+              <span class="source">NamespaceRepository &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/repository/NamespaceRepository.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Implements gray release pattern for canary deployments through branch isolation and conditional traffic routing</span>
+              <span class="source">NamespaceBranchService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/NamespaceBranchService.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Implements the builder pattern for fluent API allowing chainable configuration change tracking</span>
+              <span class="source">ConfigChangeContentBuilder &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/utils/ConfigChangeContentBuilder.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Test class uses factory helper methods (assembleGrayReleaseRule, assembleRuleItem, assembleReleaseMessage) to construct test data, indicating structured test setup</span>
+              <span class="source">GrayReleaseRulesHolderTest &mdash; apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/grayReleaseRule/GrayReleaseRulesHolderTest.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Requires ApolloServiceDiscoveryWithoutDecoratorAutoConfiguration to test undecorated discovery behavior; serves as baseline for comparison with decorator tests</span>
+              <span class="source">DatabaseDiscoveryWithoutDecoratorIntegrationTest &mdash; apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/registry/DatabaseDiscoveryWithoutDecoratorIntegrationTest.java</span>
+            </div>
+            
+          </div>
+        </details>
+        
+        <details class="findings-subcategory" style="--sub-color: #9085e9;">
           <summary>
             <span aria-hidden="true">🔒</span>
             <span>Security &amp; Authentication</span>
@@ -1896,97 +2252,11 @@
           </div>
         </details>
         
-        <details class="findings-subcategory" style="--sub-color: #9085e9;">
-          <summary>
-            <span aria-hidden="true">🧩</span>
-            <span>Design Patterns &amp; Mapping</span>
-            <span class="count-badge">15</span>
-          </summary>
-          <div class="findings-list">
-            
-            <div class="finding-item">
-              <span class="finding-text">Helper transformation methods (transform2PageDTO, transformReleaseHistory2DTO) suggest consistent DTO conversion pattern for API responses</span>
-              <span class="source">ReleaseHistoryController &mdash; apollo-adminservice/src/main/java/com/ctrip/framework/apollo/adminservice/controller/ReleaseHistoryController.java</span>
-            </div>
-            
-            <div class="finding-item">
-              <span class="finding-text">Demonstrates pattern of testing both successful and error paths for each CRUD operation</span>
-              <span class="source">ItemSetControllerTest &mdash; apollo-adminservice/src/test/java/com/ctrip/framework/apollo/adminservice/controller/ItemSetControllerTest.java</span>
-            </div>
-            
-            <div class="finding-item">
-              <span class="finding-text">Demonstrates multi-cluster isolation pattern where configuration keys can exist across multiple clusters with cluster-specific semantics</span>
-              <span class="source">ServerConfigControllerTest &mdash; apollo-adminservice/src/test/java/com/ctrip/framework/apollo/adminservice/controller/ServerConfigControllerTest.java</span>
-            </div>
-            
-            <div class="finding-item">
-              <span class="finding-text">Implements distributed tracing pattern with span context propagation via HTTP headers</span>
-              <span class="source">ApolloAuditTracer &mdash; apollo-audit/apollo-audit-impl/src/main/java/com/ctrip/framework/apollo/audit/context/ApolloAuditTracer.java</span>
-            </div>
-            
-            <div class="finding-item">
-              <span class="finding-text">Implements the Builder design pattern with fluent method chaining for most configuration methods</span>
-              <span class="source">AuditSpanBuilder &mdash; apollo-audit/apollo-audit-impl/src/main/java/com/ctrip/framework/apollo/audit/context/ApolloAuditTracer.java</span>
-            </div>
-            
-            <div class="finding-item">
-              <span class="finding-text">Implements Builder pattern for fluent object construction with all setter methods returning this for chaining</span>
-              <span class="source">Builder &mdash; apollo-audit/apollo-audit-impl/src/main/java/com/ctrip/framework/apollo/audit/entity/ApolloAuditLogDataInfluence.java</span>
-            </div>
-            
-            <div class="finding-item">
-              <span class="finding-text">@Converter(autoApply=true) annotation indicates this converter is automatically applied to all Map fields in entities</span>
-              <span class="source">JpaMapFieldJsonConverter &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/entity/JpaMapFieldJsonConverter.java</span>
-            </div>
-            
-            <div class="finding-item">
-              <span class="finding-text">Dynamic URL refresh capability suggests support for multi-environment deployment patterns</span>
-              <span class="source">ApolloEurekaClientConfig &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/eureka/ApolloEurekaClientConfig.java</span>
-            </div>
-            
-            <div class="finding-item">
-              <span class="finding-text">Observer pattern implementation with listener registration and notification mechanism</span>
-              <span class="source">ReleaseMessageScanner &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/message/ReleaseMessageScanner.java</span>
-            </div>
-            
-            <div class="finding-item">
-              <span class="finding-text">Implements the decorator pattern to add resilience against database failures</span>
-              <span class="source">DatabaseDiscoveryClientAlwaysAddSelfInstanceDecoratorImpl &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/registry/DatabaseDiscoveryClientAlwaysAddSelfInstanceDecoratorImpl.java</span>
-            </div>
-            
-            <div class="finding-item">
-              <span class="finding-text">Uses soft-delete pattern with isDeleted flag and deletedAt timestamp rather than hard deletion</span>
-              <span class="source">AppNamespaceRepository &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/repository/AppNamespaceRepository.java</span>
-            </div>
-            
-            <div class="finding-item">
-              <span class="finding-text">Uses soft-delete pattern with isDeleted flag and deletedAt timestamp</span>
-              <span class="source">CommitRepository &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/repository/CommitRepository.java</span>
-            </div>
-            
-            <div class="finding-item">
-              <span class="finding-text">Implements soft delete pattern with isDeleted flag, deletedAt timestamp, and operator tracking</span>
-              <span class="source">ItemRepository &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/repository/ItemRepository.java</span>
-            </div>
-            
-            <div class="finding-item">
-              <span class="finding-text">Implements soft delete pattern with isDeleted flag, deletedAt timestamp, and operator tracking via batch delete method</span>
-              <span class="source">NamespaceRepository &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/repository/NamespaceRepository.java</span>
-            </div>
-            
-            <div class="finding-item">
-              <span class="finding-text">Implements gray release pattern for canary deployments through branch isolation and conditional traffic routing</span>
-              <span class="source">NamespaceBranchService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/NamespaceBranchService.java</span>
-            </div>
-            
-          </div>
-        </details>
-        
         <details class="findings-subcategory" style="--sub-color: #e66767;">
           <summary>
             <span aria-hidden="true">📐</span>
             <span>Code Complexity &amp; Structure</span>
-            <span class="count-badge">9</span>
+            <span class="count-badge">11</span>
           </summary>
           <div class="findings-list">
             
@@ -2035,6 +2305,16 @@
               <span class="source">ItemSetService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/ItemSetService.java</span>
             </div>
             
+            <div class="finding-item">
+              <span class="finding-text">High-complexity methods for namespace deletion and public namespace resolution (cyclomatic complexity 6-7)</span>
+              <span class="source">NamespaceService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/NamespaceService.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">High-complexity methods for rollback calculation and branch delta computation (cyclomatic complexity 7-8)</span>
+              <span class="source">ReleaseService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/ReleaseService.java</span>
+            </div>
+            
           </div>
         </details>
         
@@ -2042,7 +2322,7 @@
           <summary>
             <span aria-hidden="true">⚙️</span>
             <span>Configuration &amp; Dependency Injection</span>
-            <span class="count-badge">9</span>
+            <span class="count-badge">10</span>
           </summary>
           <div class="findings-list">
             
@@ -2091,10 +2371,97 @@
               <span class="source">ApolloServiceRegistryProperties &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/registry/configuration/support/ApolloServiceRegistryProperties.java</span>
             </div>
             
+            <div class="finding-item">
+              <span class="finding-text">Background cleanup scheduler with @PostConstruct/@PreDestroy lifecycle management</span>
+              <span class="source">ReleaseHistoryService &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/ReleaseHistoryService.java</span>
+            </div>
+            
           </div>
         </details>
         
         <details class="findings-subcategory" style="--sub-color: #d95926;">
+          <summary>
+            <span aria-hidden="true">✅</span>
+            <span>Validation &amp; Null-Safety</span>
+            <span class="count-badge">6</span>
+          </summary>
+          <div class="findings-list">
+            
+            <div class="finding-item">
+              <span class="finding-text">Lock acquisition includes validation to prevent concurrent modifications by different users on the same namespace</span>
+              <span class="source">NamespaceAcquireLockAspect &mdash; apollo-adminservice/src/main/java/com/ctrip/framework/apollo/adminservice/aop/NamespaceAcquireLockAspect.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Includes internal validation methods (checkBranch, checkNamespace) for input validation before branch operations</span>
+              <span class="source">NamespaceBranchController &mdash; apollo-adminservice/src/main/java/com/ctrip/framework/apollo/adminservice/controller/NamespaceBranchController.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Configuration validation test with explicitly documented scope: verifies configuration loading only, not actual graceful shutdown behavior</span>
+              <span class="source">GracefulShutdownConfigurationTest &mdash; apollo-adminservice/src/test/java/com/ctrip/framework/apollo/adminservice/GracefulShutdownConfigurationTest.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Tests configuration parsing and override behavior with various input edge cases including invalid numbers and NaN values</span>
+              <span class="source">BizConfigTest &mdash; apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/config/BizConfigTest.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Focuses on validating configuration defaults and custom value handling</span>
+              <span class="source">BizConfigTest &mdash; apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/config/BizConfigTest.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Test class validates graceful degradation when optional feature (database discovery) is disabled</span>
+              <span class="source">ApolloServiceRegistryAutoConfigurationNotEnabledTest &mdash; apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/registry/configuration/ApolloServiceRegistryAutoConfigurationNotEnabledTest.java</span>
+            </div>
+            
+          </div>
+        </details>
+        
+        <details class="findings-subcategory" style="--sub-color: #3987e5;">
+          <summary>
+            <span aria-hidden="true">⚡</span>
+            <span>Caching &amp; Performance</span>
+            <span class="count-badge">6</span>
+          </summary>
+          <div class="findings-list">
+            
+            <div class="finding-item">
+              <span class="finding-text">Consistent pagination support across multiple endpoints using page and size parameters (page is 0-indexed, default size is 10)</span>
+              <span class="source">ApolloAuditController &mdash; apollo-audit/apollo-audit-impl/src/main/java/com/ctrip/framework/apollo/audit/controller/ApolloAuditController.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Multiple cache-related properties suggest a sophisticated caching strategy with configurable scan and rebuild intervals.</span>
+              <span class="source">BizConfig &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/config/BizConfig.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Uses dual-keyed cache structure (assembleGrayReleaseRuleKey and assembleReversedGrayReleaseRuleKey) for efficient bidirectional lookups</span>
+              <span class="source">GrayReleaseRulesHolder &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/grayReleaseRule/GrayReleaseRulesHolder.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Uses decorator pattern (wrapMemoryCache, wrapAlwaysAddSelfInstance) to compose discovery client behavior</span>
+              <span class="source">ApolloServiceDiscoveryAutoConfiguration &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/registry/configuration/ApolloServiceDiscoveryAutoConfiguration.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Implements the decorator pattern with dual resilience: caching to reduce load and fallback to stale cache on errors</span>
+              <span class="source">DatabaseDiscoveryClientMemoryCacheDecoratorImpl &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/registry/DatabaseDiscoveryClientMemoryCacheDecoratorImpl.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">High complexity test for cache consistency during database updates indicates potential for stale data or race conditions</span>
+              <span class="source">DatabaseDiscoveryClientMemoryCacheDecoratorImplTest &mdash; apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/registry/DatabaseDiscoveryClientMemoryCacheDecoratorImplTest.java</span>
+            </div>
+            
+          </div>
+        </details>
+        
+        <details class="findings-subcategory" style="--sub-color: #199e70;">
           <summary>
             <span aria-hidden="true">🚨</span>
             <span>Error Handling</span>
@@ -2125,68 +2492,6 @@
             <div class="finding-item">
               <span class="finding-text">Guarantees no exceptions thrown, always returning cached data for fault tolerance</span>
               <span class="source">DatabaseDiscoveryClientMemoryCacheDecoratorImpl &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/registry/DatabaseDiscoveryClientMemoryCacheDecoratorImpl.java</span>
-            </div>
-            
-          </div>
-        </details>
-        
-        <details class="findings-subcategory" style="--sub-color: #3987e5;">
-          <summary>
-            <span aria-hidden="true">⚡</span>
-            <span>Caching &amp; Performance</span>
-            <span class="count-badge">5</span>
-          </summary>
-          <div class="findings-list">
-            
-            <div class="finding-item">
-              <span class="finding-text">Consistent pagination support across multiple endpoints using page and size parameters (page is 0-indexed, default size is 10)</span>
-              <span class="source">ApolloAuditController &mdash; apollo-audit/apollo-audit-impl/src/main/java/com/ctrip/framework/apollo/audit/controller/ApolloAuditController.java</span>
-            </div>
-            
-            <div class="finding-item">
-              <span class="finding-text">Multiple cache-related properties suggest a sophisticated caching strategy with configurable scan and rebuild intervals.</span>
-              <span class="source">BizConfig &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/config/BizConfig.java</span>
-            </div>
-            
-            <div class="finding-item">
-              <span class="finding-text">Uses dual-keyed cache structure (assembleGrayReleaseRuleKey and assembleReversedGrayReleaseRuleKey) for efficient bidirectional lookups</span>
-              <span class="source">GrayReleaseRulesHolder &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/grayReleaseRule/GrayReleaseRulesHolder.java</span>
-            </div>
-            
-            <div class="finding-item">
-              <span class="finding-text">Uses decorator pattern (wrapMemoryCache, wrapAlwaysAddSelfInstance) to compose discovery client behavior</span>
-              <span class="source">ApolloServiceDiscoveryAutoConfiguration &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/registry/configuration/ApolloServiceDiscoveryAutoConfiguration.java</span>
-            </div>
-            
-            <div class="finding-item">
-              <span class="finding-text">Implements the decorator pattern with dual resilience: caching to reduce load and fallback to stale cache on errors</span>
-              <span class="source">DatabaseDiscoveryClientMemoryCacheDecoratorImpl &mdash; apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/registry/DatabaseDiscoveryClientMemoryCacheDecoratorImpl.java</span>
-            </div>
-            
-          </div>
-        </details>
-        
-        <details class="findings-subcategory" style="--sub-color: #199e70;">
-          <summary>
-            <span aria-hidden="true">✅</span>
-            <span>Validation &amp; Null-Safety</span>
-            <span class="count-badge">3</span>
-          </summary>
-          <div class="findings-list">
-            
-            <div class="finding-item">
-              <span class="finding-text">Lock acquisition includes validation to prevent concurrent modifications by different users on the same namespace</span>
-              <span class="source">NamespaceAcquireLockAspect &mdash; apollo-adminservice/src/main/java/com/ctrip/framework/apollo/adminservice/aop/NamespaceAcquireLockAspect.java</span>
-            </div>
-            
-            <div class="finding-item">
-              <span class="finding-text">Includes internal validation methods (checkBranch, checkNamespace) for input validation before branch operations</span>
-              <span class="source">NamespaceBranchController &mdash; apollo-adminservice/src/main/java/com/ctrip/framework/apollo/adminservice/controller/NamespaceBranchController.java</span>
-            </div>
-            
-            <div class="finding-item">
-              <span class="finding-text">Configuration validation test with explicitly documented scope: verifies configuration loading only, not actual graceful shutdown behavior</span>
-              <span class="source">GracefulShutdownConfigurationTest &mdash; apollo-adminservice/src/test/java/com/ctrip/framework/apollo/adminservice/GracefulShutdownConfigurationTest.java</span>
             </div>
             
           </div>
@@ -5192,13 +5497,13 @@
             
           </div>
           <div class="file-path">apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/AbstractIntegrationTest.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">Base class for Spring Boot integration tests configured to run with SpringJUnit4ClassRunner, transaction rollback, and a test configuration class that enables auto-configuration and component scanning.</div>
 
           
 
           <div class="card-footer">
             <span>
-              0 methods
+              0 methods &middot; 3 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -5220,7 +5525,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">Base class for Spring Boot integration tests configured to run with SpringJUnit4ClassRunner, transaction rollback, and a test configuration class that enables auto-configuration and component scanning.</div>
 
             
 
@@ -5230,6 +5535,16 @@
 
             
 
+            
+            <div class="notable-tags">
+              
+              <span class="notable-tag">Uses @Transactional with @Rollback for test isolation by rolling back database changes after each test</span>
+              
+              <span class="notable-tag">Configured with WebEnvironment.RANDOM_PORT for testing embedded web containers</span>
+              
+              <span class="notable-tag">Loads BizTestConfiguration which sets up the application context for integration testing</span>
+              
+            </div>
             
           </div>
         </dialog>
@@ -5245,13 +5560,13 @@
             
           </div>
           <div class="file-path">apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/AbstractUnitTest.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">Base class for unit tests configured to run with MockitoJUnitRunner for mock object management.</div>
 
           
 
           <div class="card-footer">
             <span>
-              0 methods
+              0 methods &middot; 1 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -5273,7 +5588,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">Base class for unit tests configured to run with MockitoJUnitRunner for mock object management.</div>
 
             
 
@@ -5283,6 +5598,12 @@
 
             
 
+            
+            <div class="notable-tags">
+              
+              <span class="notable-tag">Uses MockitoJUnitRunner to enable Mockito annotations and automatic mock injection</span>
+              
+            </div>
             
           </div>
         </dialog>
@@ -5298,13 +5619,13 @@
             
           </div>
           <div class="file-path">apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/BizTestConfiguration.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">Spring configuration class that enables auto-configuration and component scanning for integration tests in the Apollo business layer.</div>
 
           
 
           <div class="card-footer">
             <span>
-              0 methods
+              0 methods &middot; 2 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -5326,7 +5647,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">Spring configuration class that enables auto-configuration and component scanning for integration tests in the Apollo business layer.</div>
 
             
 
@@ -5336,6 +5657,14 @@
 
             
 
+            
+            <div class="notable-tags">
+              
+              <span class="notable-tag">Component scanning includes ApolloCommonConfig and ApolloBizConfig to load necessary business components</span>
+              
+              <span class="notable-tag">Auto-configuration enabled to provide Spring Boot&#39;s default configuration setup</span>
+              
+            </div>
             
           </div>
         </dialog>
@@ -5351,7 +5680,7 @@
             
           </div>
           <div class="file-path">apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/MockBeanFactory.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">Factory class for creating mock domain objects used in tests, providing convenience methods to instantiate Namespace, AppNamespace, ServerConfig, Release, and Item objects with predefined values.</div>
 
           
 
@@ -5379,7 +5708,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">Factory class for creating mock domain objects used in tests, providing convenience methods to instantiate Namespace, AppNamespace, ServerConfig, Release, and Item objects with predefined values.</div>
 
             
 
@@ -5421,7 +5750,7 @@
                       Namespace mockNamespace(String appId, String clusterName, String namespaceName)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Creates and returns a mock Namespace object with the specified application ID, cluster name, and namespace name.</td>
                   </tr>
                   
                   <tr >
@@ -5429,7 +5758,7 @@
                       AppNamespace mockAppNamespace(String appId, String name, boolean isPublic)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Creates and returns a mock AppNamespace object with the specified application ID, name, and public visibility flag.</td>
                   </tr>
                   
                   <tr >
@@ -5437,7 +5766,7 @@
                       ServerConfig mockServerConfig(String key, String value, String cluster)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Creates and returns a mock ServerConfig object with the specified configuration key, value, and cluster.</td>
                   </tr>
                   
                   <tr >
@@ -5445,7 +5774,7 @@
                       Release mockRelease(long releaseId, String releaseKey, String appId, String clusterName, String groupName, String configurations)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Creates and returns a mock Release object with the specified release ID, release key, application ID, cluster name, group name, and configurations.</td>
                   </tr>
                   
                   <tr >
@@ -5453,7 +5782,7 @@
                       Item mockItem(long id, long namespaceId, String itemKey, String itemValue, int lineNum)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Creates and returns a mock Item object with the specified ID, namespace ID, item key, item value, and line number.</td>
                   </tr>
                   
                 </tbody>
@@ -6735,13 +7064,13 @@
             
           </div>
           <div class="file-path">apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/config/BizConfigTest.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">A JUnit test class that validates configuration behavior in the Apollo business logic module, testing various configuration properties and their parsing/override behavior.</div>
 
           
 
           <div class="card-footer">
             <span>
-              12 methods
+              12 methods &middot; 3 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -6763,7 +7092,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">A JUnit test class that validates configuration behavior in the Apollo business logic module, testing various configuration properties and their parsing/override behavior.</div>
 
             
 
@@ -6791,7 +7120,7 @@
                       void setUp()
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Initializes test fixtures before each test method execution.</td>
                   </tr>
                   
                   <tr >
@@ -6799,7 +7128,7 @@
                       void testReleaseMessageNotificationBatch()
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Tests the default release message notification batch size configuration.</td>
                   </tr>
                   
                   <tr >
@@ -6807,7 +7136,7 @@
                       void testReleaseMessageNotificationBatchWithDefaultValue()
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Tests release message notification batch size when default values are applied.</td>
                   </tr>
                   
                   <tr >
@@ -6815,7 +7144,7 @@
                       void testReleaseMessageNotificationBatchWithInvalidNumber()
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Tests that invalid numeric input for release message notification batch is handled gracefully.</td>
                   </tr>
                   
                   <tr >
@@ -6823,7 +7152,7 @@
                       void testReleaseHistoryRetentionSize()
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Tests the release history retention size configuration.</td>
                   </tr>
                   
                   <tr >
@@ -6831,7 +7160,7 @@
                       void testReleaseHistoryRetentionSizeOverride()
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Tests that release history retention size can be overridden from the default value.</td>
                   </tr>
                   
                   <tr >
@@ -6839,7 +7168,7 @@
                       void testAppIdValueLengthLimitOverride()
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Tests that the application ID value length limit configuration can be overridden.</td>
                   </tr>
                   
                   <tr >
@@ -6847,7 +7176,7 @@
                       void testReleaseMessageNotificationBatchWithNAN()
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Tests that non-numeric input (NaN) for release message notification batch is handled appropriately.</td>
                   </tr>
                   
                   <tr >
@@ -6855,7 +7184,7 @@
                       void testCheckInt()
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Tests integer validation or parsing logic within the configuration.</td>
                   </tr>
                   
                   <tr >
@@ -6863,7 +7192,7 @@
                       void testIsConfigServiceCacheKeyIgnoreCase()
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Tests that configuration service cache keys are handled in a case-insensitive manner.</td>
                   </tr>
                   
                   <tr >
@@ -6871,7 +7200,7 @@
                       void testNamespaceNumLimitWhite_filtersEmptyItems()
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Tests that namespace number limit whitelist filtering correctly removes empty items.</td>
                   </tr>
                   
                   <tr >
@@ -6879,7 +7208,7 @@
                       void testIsAccessKeyAutoProvisionEnabled()
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Tests the access key auto-provisioning enable/disable configuration.</td>
                   </tr>
                   
                 </tbody>
@@ -6887,6 +7216,16 @@
             </div>
             
 
+            
+            <div class="notable-tags">
+              
+              <span class="notable-tag">Uses MockitoJUnitRunner for mock-based testing</span>
+              
+              <span class="notable-tag">Tests configuration parsing and override behavior with various input edge cases including invalid numbers and NaN values</span>
+              
+              <span class="notable-tag">Focuses on validating configuration defaults and custom value handling</span>
+              
+            </div>
             
           </div>
         </dialog>
@@ -7519,13 +7858,13 @@
             
           </div>
           <div class="file-path">apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/registry/configuration/ApolloServiceRegistryAutoConfigurationNotEnabledTest.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">A Spring Boot test that verifies database discovery features do not cause ConfigService or AdminService startup failures when the feature is disabled.</div>
 
           
 
           <div class="card-footer">
             <span>
-              2 methods
+              2 methods &middot; 2 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -7547,7 +7886,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">A Spring Boot test that verifies database discovery features do not cause ConfigService or AdminService startup failures when the feature is disabled.</div>
 
             
 
@@ -7585,7 +7924,7 @@
                       void assertNoSuchBean(Class requiredType)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Helper method that asserts a bean of the specified type is not present in the application context.</td>
                   </tr>
                   
                   <tr >
@@ -7601,6 +7940,14 @@
             </div>
             
 
+            
+            <div class="notable-tags">
+              
+              <span class="notable-tag">Test class validates graceful degradation when optional feature (database discovery) is disabled</span>
+              
+              <span class="notable-tag">Uses SpringBootTest with explicit ContextConfiguration to load only necessary auto-configurations</span>
+              
+            </div>
             
           </div>
         </dialog>
@@ -14344,13 +14691,13 @@
             
           </div>
           <div class="file-path">apollo-audit/apollo-audit-impl/src/main/java/com/ctrip/framework/apollo/audit/entity/ApolloAuditLogDataInfluence.java</div>
-          <div class="class-description clamp">Builder class for fluent construction of ApolloAuditLog instances with chainable setter methods.</div>
+          <div class="class-description clamp">Inner builder class for constructing ApolloAuditLog instances with fluent setter methods for audit log properties including trace identifiers, operator information, operation details, and timestamp.</div>
 
           
 
           <div class="card-footer">
             <span>
-              8 methods &middot; 1 notable
+              8 methods &middot; 3 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -14372,7 +14719,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Builder class for fluent construction of ApolloAuditLog instances with chainable setter methods.</div>
+            <div class="class-description">Inner builder class for constructing ApolloAuditLog instances with fluent setter methods for audit log properties including trace identifiers, operator information, operation details, and timestamp.</div>
 
             
 
@@ -14391,7 +14738,7 @@
                       void Builder()
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Constructs a new empty Builder instance for ApolloAuditLogDataInfluence.</td>
                   </tr>
                   
                   <tr >
@@ -14399,7 +14746,7 @@
                       Builder spanId(String val)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Sets the span ID for distributed tracing correlation and returns this builder for method chaining.</td>
                   </tr>
                   
                   <tr >
@@ -14407,7 +14754,7 @@
                       Builder entityId(String val)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Sets the entity ID identifying the affected resource and returns this builder for method chaining.</td>
                   </tr>
                   
                   <tr >
@@ -14415,7 +14762,7 @@
                       Builder entityName(String val)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Sets the entity name/type and returns this builder for method chaining.</td>
                   </tr>
                   
                   <tr >
@@ -14423,7 +14770,7 @@
                       Builder fieldName(String val)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Sets the field name that was modified and returns this builder for method chaining.</td>
                   </tr>
                   
                   <tr >
@@ -14431,7 +14778,7 @@
                       Builder oldVal(String val)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Sets the previous value before the modification and returns this builder for method chaining.</td>
                   </tr>
                   
                   <tr >
@@ -14439,7 +14786,7 @@
                       Builder newVal(String val)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Sets the new value after the modification and returns this builder for method chaining.</td>
                   </tr>
                   
                   <tr >
@@ -14447,7 +14794,7 @@
                       ApolloAuditLogDataInfluence build()
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Constructs and returns the final ApolloAuditLogDataInfluence instance with all configured properties.</td>
                   </tr>
                   
                 </tbody>
@@ -14458,7 +14805,11 @@
             
             <div class="notable-tags">
               
-              <span class="notable-tag">Implements Builder pattern for fluent object construction with all setter methods returning this for chaining</span>
+              <span class="notable-tag">Implements the Builder design pattern for fluent object construction</span>
+              
+              <span class="notable-tag">Supports distributed tracing with traceId, spanId, parentSpanId, and followsFromSpanId fields</span>
+              
+              <span class="notable-tag">Captures before/after values to track data mutations in audit records</span>
               
             </div>
             
@@ -17535,7 +17886,7 @@
             
           </div>
           <div class="file-path">apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/entity/JpaMapFieldJsonConverterTest.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">Unit test class for JpaMapFieldJsonConverter that validates the conversion logic between database column representations and entity map attributes using JSON serialization.</div>
 
           
 
@@ -17563,7 +17914,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">Unit test class for JpaMapFieldJsonConverter that validates the conversion logic between database column representations and entity map attributes using JSON serialization.</div>
 
             
 
@@ -17582,7 +17933,7 @@
                       String readAllContentOf(String path)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Reads and returns the entire file content from the specified path as a string.</td>
                   </tr>
                   
                   <tr >
@@ -18811,13 +19162,13 @@
             
           </div>
           <div class="file-path">apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/grayReleaseRule/GrayReleaseRulesHolderTest.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">A test class for GrayReleaseRulesHolder that validates the scanning and application of gray release rules to configurations using Mockito for dependency injection.</div>
 
           
 
           <div class="card-footer">
             <span>
-              5 methods
+              5 methods &middot; 2 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -18839,7 +19190,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">A test class for GrayReleaseRulesHolder that validates the scanning and application of gray release rules to configurations using Mockito for dependency injection.</div>
 
             
 
@@ -18913,6 +19264,14 @@
             </div>
             
 
+            
+            <div class="notable-tags">
+              
+              <span class="notable-tag">HIGH COMPLEXITY flag on testScanGrayReleaseRules suggests extensive test logic covering multiple scenarios or edge cases</span>
+              
+              <span class="notable-tag">Test class uses factory helper methods (assembleGrayReleaseRule, assembleRuleItem, assembleReleaseMessage) to construct test data, indicating structured test setup</span>
+              
+            </div>
             
           </div>
         </dialog>
@@ -19535,7 +19894,7 @@
             
           </div>
           <div class="file-path">apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/message/DatabaseMessageSenderTest.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">Unit test class for DatabaseMessageSender that verifies message sending behavior, including success cases, unsupported message handling, and failure scenarios.</div>
 
           
 
@@ -19563,7 +19922,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">Unit test class for DatabaseMessageSender that verifies message sending behavior, including success cases, unsupported message handling, and failure scenarios.</div>
 
             
 
@@ -19640,13 +19999,13 @@
             
           </div>
           <div class="file-path">apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/message/ReleaseMessageScannerTest.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">Unit test class for ReleaseMessageScanner that validates message scanning and notification behaviors, including gap detection scenarios.</div>
 
           
 
           <div class="card-footer">
             <span>
-              4 methods
+              4 methods &middot; 1 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -19668,7 +20027,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">Unit test class for ReleaseMessageScanner that validates message scanning and notification behaviors, including gap detection scenarios.</div>
 
             
 
@@ -19732,6 +20091,12 @@
             </div>
             
 
+            
+            <div class="notable-tags">
+              
+              <span class="notable-tag">testScanMessageWithGapAndNotifyMessageListener has high complexity (34 LOC), suggesting intricate gap-handling test logic</span>
+              
+            </div>
             
           </div>
         </dialog>
@@ -20423,7 +20788,7 @@
             
           </div>
           <div class="file-path">apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/registry/DatabaseDiscoveryClientAlwaysAddSelfInstanceDecoratorImplTest.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">Test class for the DatabaseDiscoveryClientAlwaysAddSelfInstanceDecoratorImpl decorator, verifying that the decorator adds the self instance to discovery results appropriately.</div>
 
           
 
@@ -20451,7 +20816,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">Test class for the DatabaseDiscoveryClientAlwaysAddSelfInstanceDecoratorImpl decorator, verifying that the decorator adds the self instance to discovery results appropriately.</div>
 
             
 
@@ -20509,7 +20874,7 @@
             
           </div>
           <div class="file-path">apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/registry/DatabaseDiscoveryClientImplTest.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">Test class for the DatabaseDiscoveryClientImpl, validating filtering and discovery functionality for service instances.</div>
 
           
 
@@ -20537,7 +20902,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">Test class for the DatabaseDiscoveryClientImpl, validating filtering and discovery functionality for service instances.</div>
 
             
 
@@ -20614,13 +20979,13 @@
             
           </div>
           <div class="file-path">apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/registry/DatabaseDiscoveryClientMemoryCacheDecoratorImplTest.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">Test class for the DatabaseDiscoveryClientMemoryCacheDecoratorImpl decorator, verifying caching behavior and consistency with database updates.</div>
 
           
 
           <div class="card-footer">
             <span>
-              6 methods
+              6 methods &middot; 1 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -20642,7 +21007,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">Test class for the DatabaseDiscoveryClientMemoryCacheDecoratorImpl decorator, verifying caching behavior and consistency with database updates.</div>
 
             
 
@@ -20710,6 +21075,12 @@
             
 
             
+            <div class="notable-tags">
+              
+              <span class="notable-tag">High complexity test for cache consistency during database updates indicates potential for stale data or race conditions</span>
+              
+            </div>
+            
           </div>
         </dialog>
         
@@ -20724,13 +21095,13 @@
             
           </div>
           <div class="file-path">apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/registry/DatabaseDiscoveryIntegrationTest.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">Integration test for the complete database-backed service discovery flow, including registration, discovery, and deletion of service instances.</div>
 
           
 
           <div class="card-footer">
             <span>
-              4 methods
+              4 methods &middot; 1 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -20752,7 +21123,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">Integration test for the complete database-backed service discovery flow, including registration, discovery, and deletion of service instances.</div>
 
             
 
@@ -20815,6 +21186,12 @@
             
 
             
+            <div class="notable-tags">
+              
+              <span class="notable-tag">Requires Spring context with ApolloServiceRegistryAutoConfiguration and ApolloServiceDiscoveryAutoConfiguration; tests cluster-based isolation and multi-instance scenarios</span>
+              
+            </div>
+            
           </div>
         </dialog>
         
@@ -20829,13 +21206,13 @@
             
           </div>
           <div class="file-path">apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/registry/DatabaseDiscoveryWithoutDecoratorIntegrationTest.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">Integration test for service discovery without decorator layers, validating core discovery behavior independent of caching or self-instance decorators.</div>
 
           
 
           <div class="card-footer">
             <span>
-              4 methods
+              4 methods &middot; 1 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -20857,7 +21234,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">Integration test for service discovery without decorator layers, validating core discovery behavior independent of caching or self-instance decorators.</div>
 
             
 
@@ -20926,6 +21303,12 @@
             
 
             
+            <div class="notable-tags">
+              
+              <span class="notable-tag">Requires ApolloServiceDiscoveryWithoutDecoratorAutoConfiguration to test undecorated discovery behavior; serves as baseline for comparison with decorator tests</span>
+              
+            </div>
+            
           </div>
         </dialog>
         
@@ -20940,13 +21323,13 @@
             
           </div>
           <div class="file-path">apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/registry/DatabaseDiscoveryWithoutDecoratorIntegrationTest.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">Spring auto-configuration class that provides an undecorated DatabaseDiscoveryClient bean for testing service discovery without caching or self-instance decoration.</div>
 
           
 
           <div class="card-footer">
             <span>
-              1 method
+              1 method &middot; 1 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -20968,7 +21351,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">Spring auto-configuration class that provides an undecorated DatabaseDiscoveryClient bean for testing service discovery without caching or self-instance decoration.</div>
 
             
 
@@ -21011,6 +21394,12 @@
             
 
             
+            <div class="notable-tags">
+              
+              <span class="notable-tag">Configuration is conditionally enabled and auto-configured before ApolloServiceDiscoveryAutoConfiguration to provide undecorated baseline; depends on ApolloServiceDiscoveryAutoConfiguration bean to exist</span>
+              
+            </div>
+            
           </div>
         </dialog>
         
@@ -21025,7 +21414,7 @@
             
           </div>
           <div class="file-path">apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/registry/ServiceInstanceFactory.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">A factory utility class for creating ServiceInstance objects with specified service name, URI, and cluster information.</div>
 
           
 
@@ -21053,7 +21442,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">A factory utility class for creating ServiceInstance objects with specified service name, URI, and cluster information.</div>
 
             
 
@@ -21079,7 +21468,7 @@
                       ServiceInstance newServiceInstance(String serviceName, String uri, String cluster)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Creates and returns a new ServiceInstance with the provided service name, URI, and cluster identifier.</td>
                   </tr>
                   
                 </tbody>
@@ -25442,13 +25831,13 @@
             
           </div>
           <div class="file-path">apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/NamespaceLockService.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">Service for managing distributed locks on namespaces, enabling exclusive write access during configuration updates.</div>
 
           
 
           <div class="card-footer">
             <span>
-              4 methods
+              4 methods &middot; 2 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -25470,7 +25859,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">Service for managing distributed locks on namespaces, enabling exclusive write access during configuration updates.</div>
 
             
 
@@ -25498,7 +25887,7 @@
                       void NamespaceLockService(NamespaceLockRepository namespaceLockRepository)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Constructor that injects the repository for accessing namespace lock data.</td>
                   </tr>
                   
                   <tr >
@@ -25506,7 +25895,7 @@
                       NamespaceLock findLock(Long namespaceId)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Retrieves the current lock for a specific namespace if one exists.</td>
                   </tr>
                   
                   <tr >
@@ -25531,6 +25920,14 @@
             
 
             
+            <div class="notable-tags">
+              
+              <span class="notable-tag">Distributed locking mechanism to prevent concurrent modifications to namespaces</span>
+              
+              <span class="notable-tag">Transactional consistency for lock acquisition and release operations</span>
+              
+            </div>
+            
           </div>
         </dialog>
         
@@ -25545,13 +25942,13 @@
             
           </div>
           <div class="file-path">apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/NamespaceService.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">Core service for namespace management, providing operations for creation, retrieval, deletion, and hierarchical relationships in the Apollo configuration framework.</div>
 
           
 
           <div class="card-footer">
             <span>
-              24 methods
+              24 methods &middot; 4 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -25573,7 +25970,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">Core service for namespace management, providing operations for creation, retrieval, deletion, and hierarchical relationships in the Apollo configuration framework.</div>
 
             
 
@@ -25617,7 +26014,7 @@
                       void NamespaceService(ReleaseHistoryService releaseHistoryService, NamespaceRepository namespaceRepository, AuditService auditService, AppNamespaceService appNamespaceService, MessageSender messageSender, ItemService itemService, CommitService commitService, ReleaseService releaseService, ClusterService clusterService, NamespaceBranchService namespaceBranchService, NamespaceLockService namespaceLockService, InstanceService instanceService, BizConfig bizConfig)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Constructor that injects 13 dependencies including repositories, related services, and configuration for namespace operations.</td>
                   </tr>
                   
                   <tr >
@@ -25625,7 +26022,7 @@
                       Namespace findOne(Long namespaceId)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Retrieves a namespace by its unique identifier.</td>
                   </tr>
                   
                   <tr >
@@ -25633,7 +26030,7 @@
                       Namespace findOne(String appId, String clusterName, String namespaceName)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Retrieves a namespace using the composite key of application, cluster, and namespace name.</td>
                   </tr>
                   
                   <tr >
@@ -25641,7 +26038,7 @@
                       Page findByItem(String itemKey, Pageable pageable)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Searches for namespaces containing a specific configuration item key, returning paginated results of variable size.</td>
                   </tr>
                   
                   <tr class="high-complexity">
@@ -25649,7 +26046,7 @@
                       Namespace findPublicNamespaceForAssociatedNamespace(String clusterName, String namespaceName)
                       <br><span class="complexity-flag">HIGH COMPLEXITY (cyclomatic~=7)</span>
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Locates the public namespace associated with a given namespace, with complex resolution logic for cross-cluster references.</td>
                   </tr>
                   
                   <tr >
@@ -25657,7 +26054,7 @@
                       List findPublicAppNamespaceAllNamespaces(String namespaceName, Pageable page)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Retrieves all namespaces associated with a public application namespace.</td>
                   </tr>
                   
                   <tr >
@@ -25665,7 +26062,7 @@
                       List filterChildNamespace(List namespaces)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Filters a list of namespaces to identify and return only child namespaces.</td>
                   </tr>
                   
                   <tr >
@@ -25673,7 +26070,7 @@
                       int countPublicAppNamespaceAssociatedNamespaces(String publicNamespaceName)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Counts the total number of namespaces that reference a specific public application namespace.</td>
                   </tr>
                   
                   <tr >
@@ -25681,7 +26078,7 @@
                       List findNamespaces(String appId, String clusterName)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Retrieves all namespaces for a given application and cluster.</td>
                   </tr>
                   
                   <tr >
@@ -25689,7 +26086,7 @@
                       List findByAppIdAndNamespaceName(String appId, String namespaceName)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Finds all namespaces matching an application and namespace name across all clusters.</td>
                   </tr>
                   
                   <tr >
@@ -25697,7 +26094,7 @@
                       Namespace findChildNamespace(String appId, String parentClusterName, String namespaceName)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Locates a child namespace derived from a parent namespace with complex branching logic.</td>
                   </tr>
                   
                   <tr >
@@ -25705,7 +26102,7 @@
                       Namespace findChildNamespace(Namespace parentNamespace)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Retrieves the child namespace associated with a given parent namespace.</td>
                   </tr>
                   
                   <tr >
@@ -25713,7 +26110,7 @@
                       Namespace findParentNamespace(String appId, String clusterName, String namespaceName)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Finds the parent namespace from which a given namespace inherits configuration.</td>
                   </tr>
                   
                   <tr >
@@ -25721,7 +26118,7 @@
                       Namespace findParentNamespace(Namespace namespace)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Retrieves the parent namespace for a given namespace entity with hierarchical resolution.</td>
                   </tr>
                   
                   <tr >
@@ -25729,7 +26126,7 @@
                       boolean isChildNamespace(String appId, String clusterName, String namespaceName)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Determines whether the specified namespace is a child namespace.</td>
                   </tr>
                   
                   <tr >
@@ -25737,7 +26134,7 @@
                       boolean isChildNamespace(Namespace namespace)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Checks if a namespace entity is a child namespace.</td>
                   </tr>
                   
                   <tr >
@@ -25745,7 +26142,7 @@
                       boolean isNamespaceUnique(String appId, String cluster, String namespace)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Validates that a namespace name is unique within an application and cluster.</td>
                   </tr>
                   
                   <tr >
@@ -25793,7 +26190,7 @@
                       Map namespacePublishInfo(String appId)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Compiles comprehensive publish status and version information for all namespaces in an application.</td>
                   </tr>
                   
                   <tr >
@@ -25801,7 +26198,7 @@
                       boolean isNamespaceNotPublished(Namespace namespace)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Checks whether a namespace lacks any active releases or published configurations.</td>
                   </tr>
                   
                 </tbody>
@@ -25809,6 +26206,18 @@
             </div>
             
 
+            
+            <div class="notable-tags">
+              
+              <span class="notable-tag">Complex hierarchical namespace relationships with parent-child branching support</span>
+              
+              <span class="notable-tag">High-complexity methods for namespace deletion and public namespace resolution (cyclomatic complexity 6-7)</span>
+              
+              <span class="notable-tag">Extensive dependency injection with 13 collaborating services indicating complex business logic orchestration</span>
+              
+              <span class="notable-tag">Audit trail integration for all write operations</span>
+              
+            </div>
             
           </div>
         </dialog>
@@ -25824,13 +26233,13 @@
             
           </div>
           <div class="file-path">apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/ReleaseHistoryService.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">Service for managing release history records and implementing automated retention policies with background cleanup for configuration change auditing.</div>
 
           
 
           <div class="card-footer">
             <span>
-              12 methods
+              12 methods &middot; 4 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -25852,7 +26261,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">Service for managing release history records and implementing automated retention policies with background cleanup for configuration change auditing.</div>
 
             
 
@@ -25886,7 +26295,7 @@
                       void ReleaseHistoryService(ReleaseHistoryRepository releaseHistoryRepository, ReleaseRepository releaseRepository, AuditService auditService, BizConfig bizConfig, TransactionTemplate transactionManager)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Constructor that injects repositories, audit service, configuration, and transaction template for release history management.</td>
                   </tr>
                   
                   <tr >
@@ -25902,7 +26311,7 @@
                       Page findReleaseHistoriesByNamespace(String appId, String clusterName, String namespaceName, Pageable pageable)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Retrieves paginated release history records for a specific namespace.</td>
                   </tr>
                   
                   <tr >
@@ -25910,7 +26319,7 @@
                       Page findByReleaseIdAndOperation(long releaseId, int operation, Pageable page)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Finds paginated history records for a release filtered by a specific operation type.</td>
                   </tr>
                   
                   <tr >
@@ -25918,7 +26327,7 @@
                       Page findByPreviousReleaseIdAndOperation(long previousReleaseId, int operation, Pageable page)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Queries paginated history records referencing a previous release and operation type.</td>
                   </tr>
                   
                   <tr >
@@ -25926,7 +26335,7 @@
                       Page findByReleaseIdAndOperationInOrderByIdDesc(long releaseId, Set operations, Pageable page)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Retrieves paginated history records for a release matching any of multiple operation types, ordered by descending ID.</td>
                   </tr>
                   
                   <tr >
@@ -25950,7 +26359,7 @@
                       Optional releaseHistoryRetentionMaxId(ReleaseHistory releaseHistory, int releaseHistoryRetentionSize)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Determines the maximum history record ID to retain based on configured retention size policy.</td>
                   </tr>
                   
                   <tr >
@@ -25958,7 +26367,7 @@
                       void cleanReleaseHistory(ReleaseHistory cleanRelease)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Executes the background cleanup task to delete old release history records exceeding retention limits.</td>
                   </tr>
                   
                   <tr >
@@ -25966,7 +26375,7 @@
                       int getReleaseHistoryRetentionLimit(ReleaseHistory releaseHistory)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Retrieves the applicable retention limit for release history based on configuration.</td>
                   </tr>
                   
                   <tr >
@@ -25983,6 +26392,18 @@
             
 
             
+            <div class="notable-tags">
+              
+              <span class="notable-tag">Background cleanup scheduler with @PostConstruct/@PreDestroy lifecycle management</span>
+              
+              <span class="notable-tag">Automated retention policy enforcement to prevent unbounded history growth</span>
+              
+              <span class="notable-tag">Transactional consistency for history creation and deletion</span>
+              
+              <span class="notable-tag">High-complexity cleanup logic (cyclomatic complexity 5)</span>
+              
+            </div>
+            
           </div>
         </dialog>
         
@@ -25997,13 +26418,13 @@
             
           </div>
           <div class="file-path">apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/ReleaseMessageService.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">Service for retrieving the latest release messages, enabling clients to detect configuration changes through message tracking.</div>
 
           
 
           <div class="card-footer">
             <span>
-              3 methods
+              3 methods &middot; 1 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -26025,7 +26446,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">Service for retrieving the latest release messages, enabling clients to detect configuration changes through message tracking.</div>
 
             
 
@@ -26053,7 +26474,7 @@
                       void ReleaseMessageService(ReleaseMessageRepository releaseMessageRepository)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Constructor that injects the repository for accessing release message data.</td>
                   </tr>
                   
                   <tr >
@@ -26061,7 +26482,7 @@
                       ReleaseMessage findLatestReleaseMessageForMessages(Collection messages)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Returns the single most recent release message from a collection of message identifiers.</td>
                   </tr>
                   
                   <tr >
@@ -26069,7 +26490,7 @@
                       List findLatestReleaseMessagesGroupByMessages(Collection messages)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Retrieves the latest release message for each unique message identifier, grouping results by message.</td>
                   </tr>
                   
                 </tbody>
@@ -26077,6 +26498,12 @@
             </div>
             
 
+            
+            <div class="notable-tags">
+              
+              <span class="notable-tag">Lightweight service focused on message-based change notification lookups</span>
+              
+            </div>
             
           </div>
         </dialog>
@@ -26092,13 +26519,13 @@
             
           </div>
           <div class="file-path">apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/ReleaseService.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">Comprehensive service for managing configuration releases, including publishing, rollback, branching, and change merging with support for gray deployments.</div>
 
           
 
           <div class="card-footer">
             <span>
-              30 methods
+              30 methods &middot; 5 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -26120,7 +26547,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">Comprehensive service for managing configuration releases, including publishing, rollback, branching, and change merging with support for gray deployments.</div>
 
             
 
@@ -26162,7 +26589,7 @@
                       void ReleaseService(ReleaseRepository releaseRepository, ItemService itemService, AuditService auditService, NamespaceLockService namespaceLockService, NamespaceService namespaceService, NamespaceBranchService namespaceBranchService, ReleaseHistoryService releaseHistoryService, ItemSetService itemSetService)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Constructor injecting 8 dependencies for repository access, service orchestration, and locking/auditing.</td>
                   </tr>
                   
                   <tr >
@@ -26170,7 +26597,7 @@
                       Release findOne(long releaseId)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Retrieves a single release by its unique identifier.</td>
                   </tr>
                   
                   <tr >
@@ -26178,7 +26605,7 @@
                       Release findActiveOne(long releaseId)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Retrieves a release by ID that is currently active (non-deleted).</td>
                   </tr>
                   
                   <tr >
@@ -26186,7 +26613,7 @@
                       List findByReleaseIds(Set releaseIds)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Fetches multiple releases given a set of release IDs.</td>
                   </tr>
                   
                   <tr >
@@ -26194,7 +26621,7 @@
                       List findByReleaseKeys(Set releaseKeys)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Looks up releases using their unique release key identifiers.</td>
                   </tr>
                   
                   <tr >
@@ -26202,7 +26629,7 @@
                       Release findByReleaseKey(String releaseKey)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Retrieves a single release by its unique release key.</td>
                   </tr>
                   
                   <tr >
@@ -26210,7 +26637,7 @@
                       Release findLatestActiveRelease(Namespace namespace)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Finds the most recent active release for a namespace.</td>
                   </tr>
                   
                   <tr >
@@ -26218,7 +26645,7 @@
                       Release findLatestActiveRelease(String appId, String clusterName, String namespaceName)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Locates the latest active release using application, cluster, and namespace identifiers.</td>
                   </tr>
                   
                   <tr >
@@ -26226,7 +26653,7 @@
                       List findAllReleases(String appId, String clusterName, String namespaceName, Pageable page)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Retrieves all releases (active and inactive) for a namespace in paginated form.</td>
                   </tr>
                   
                   <tr >
@@ -26234,7 +26661,7 @@
                       List findActiveReleases(String appId, String clusterName, String namespaceName, Pageable page)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Retrieves only active releases for a namespace with pagination support.</td>
                   </tr>
                   
                   <tr >
@@ -26242,7 +26669,7 @@
                       List findActiveReleasesBetween(String appId, String clusterName, String namespaceName, long fromReleaseId, long toReleaseId)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Fetches active releases within a specified ID range for a namespace.</td>
                   </tr>
                   
                   <tr >
@@ -26266,7 +26693,7 @@
                       Release publishBranchNamespace(Namespace parentNamespace, Namespace childNamespace, Map childNamespaceItems, String releaseName, String releaseComment, String operator, boolean isEmergencyPublish, Set grayDelKeys)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Publishes a child branch namespace with gray deletion support for phased item removal.</td>
                   </tr>
                   
                   <tr >
@@ -26282,7 +26709,7 @@
                       void checkLock(Namespace namespace, boolean isEmergencyPublish, String operator)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Validates that a namespace lock is available or that emergency publishing is authorized.</td>
                   </tr>
                   
                   <tr >
@@ -26290,7 +26717,7 @@
                       void mergeFromMasterAndPublishBranch(Namespace parentNamespace, Namespace childNamespace, Map parentNamespaceItems, String releaseName, String releaseComment, String operator, Release masterPreviousRelease, Release parentRelease, boolean isEmergencyPublish)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Merges parent namespace updates into a branch and publishes the result with multi-release coordination.</td>
                   </tr>
                   
                   <tr >
@@ -26298,7 +26725,7 @@
                       Collection getBranchReleaseKeys(long releaseId)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Identifies all child branch releases associated with a parent release.</td>
                   </tr>
                   
                   <tr >
@@ -26306,7 +26733,7 @@
                       Release publishBranchNamespace(Namespace parentNamespace, Namespace childNamespace, Map childNamespaceItems, String releaseName, String releaseComment, String operator, boolean isEmergencyPublish)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Publishes a child branch namespace without gray deletion keys.</td>
                   </tr>
                   
                   <tr >
@@ -26314,7 +26741,7 @@
                       Release masterRelease(Namespace namespace, String releaseName, String releaseComment, Map configurations, String operator, int releaseOperation, Map operationContext)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Creates a release for a master namespace with explicit configurations and operation metadata.</td>
                   </tr>
                   
                   <tr >
@@ -26322,7 +26749,7 @@
                       Release branchRelease(Namespace parentNamespace, Namespace childNamespace, String releaseName, String releaseComment, Map configurations, long baseReleaseId, String operator, int releaseOperation, boolean isEmergencyPublish, Collection branchReleaseKeys)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Creates a branch release derived from a base release with delta configurations and emergency support.</td>
                   </tr>
                   
                   <tr >
@@ -26330,7 +26757,7 @@
                       Map mergeConfiguration(Map baseConfigurations, Map coverConfigurations)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Merges two configuration maps, with cover configurations overriding base configurations.</td>
                   </tr>
                   
                   <tr >
@@ -26338,7 +26765,7 @@
                       Map getNamespaceItems(Namespace namespace)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Retrieves all configuration items for a namespace as a key-value map.</td>
                   </tr>
                   
                   <tr >
@@ -26346,7 +26773,7 @@
                       Release createRelease(Namespace namespace, String name, String comment, Map configurations, String operator)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Creates a release entity with provided configurations and metadata.</td>
                   </tr>
                   
                   <tr >
@@ -26370,7 +26797,7 @@
                       void rollbackChildNamespace(String appId, String clusterName, String namespaceName, List parentNamespaceTwoLatestActiveRelease, String operator)
                       <br><span class="complexity-flag">HIGH COMPLEXITY (cyclomatic~=5)</span>
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Cascades rollback to child namespaces when parent namespaces are rolled back.</td>
                   </tr>
                   
                   <tr >
@@ -26378,7 +26805,7 @@
                       Map calculateChildNamespaceToPublishConfiguration(Map parentNamespaceOldConfiguration, Map parentNamespaceNewConfiguration, Map childNamespaceLatestActiveConfiguration, Collection branchReleaseKeys)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Computes the child namespace configuration after parent updates, preserving overrides.</td>
                   </tr>
                   
                   <tr >
@@ -26386,7 +26813,7 @@
                       Map calculateBranchModifiedItemsAccordingToRelease(Map masterReleaseConfigs, Map branchReleaseConfigs, Collection branchReleaseKeys)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Identifies items modified in branch releases relative to master release with complex delta logic (high cyclomatic complexity 8).</td>
                   </tr>
                   
                   <tr >
@@ -26403,6 +26830,20 @@
             
 
             
+            <div class="notable-tags">
+              
+              <span class="notable-tag">Complex release orchestration supporting master-branch hierarchy and gray deployments</span>
+              
+              <span class="notable-tag">High-complexity methods for rollback calculation and branch delta computation (cyclomatic complexity 7-8)</span>
+              
+              <span class="notable-tag">Distributed lock enforcement via NamespaceLockService for concurrent write protection</span>
+              
+              <span class="notable-tag">Multi-level transaction management for consistency across releases, history, and audit logs</span>
+              
+              <span class="notable-tag">Extensive configuration merging and delta calculation logic for hierarchical namespace support</span>
+              
+            </div>
+            
           </div>
         </dialog>
         
@@ -26417,13 +26858,13 @@
             
           </div>
           <div class="file-path">apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/ServerConfigService.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">Service for managing server-level configuration settings with support for cluster-specific overrides and lifecycle operations.</div>
 
           
 
           <div class="card-footer">
             <span>
-              4 methods
+              4 methods &middot; 2 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -26445,7 +26886,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">Service for managing server-level configuration settings with support for cluster-specific overrides and lifecycle operations.</div>
 
             
 
@@ -26473,7 +26914,7 @@
                       void ServerConfigService(ServerConfigRepository serverConfigRepository)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Constructor that injects the repository for accessing server configuration data.</td>
                   </tr>
                   
                   <tr >
@@ -26481,7 +26922,7 @@
                       List findAll()
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Retrieves all server configuration entries.</td>
                   </tr>
                   
                   <tr >
@@ -26506,6 +26947,14 @@
             
 
             
+            <div class="notable-tags">
+              
+              <span class="notable-tag">Simple, focused service for operational server-level configuration management</span>
+              
+              <span class="notable-tag">Cluster-scoped configuration support for multi-region deployments</span>
+              
+            </div>
+            
           </div>
         </dialog>
         
@@ -26520,13 +26969,13 @@
             
           </div>
           <div class="file-path">apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/service/ServiceRegistryService.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">A service class that manages service registry persistence operations, providing methods to save, delete, and query service registry entries based on service names and time-based criteria.</div>
 
           
 
           <div class="card-footer">
             <span>
-              5 methods
+              5 methods &middot; 2 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -26548,7 +26997,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">A service class that manages service registry persistence operations, providing methods to save, delete, and query service registry entries based on service names and time-based criteria.</div>
 
             
 
@@ -26576,7 +27025,7 @@
                       void ServiceRegistryService(ServiceRegistryRepository repository)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Constructor that initializes the ServiceRegistryService with a ServiceRegistryRepository dependency for database access.</td>
                   </tr>
                   
                   <tr >
@@ -26584,7 +27033,7 @@
                       ServiceRegistry saveIfNotExistByServiceNameAndUri(ServiceRegistry serviceRegistry)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Saves a service registry entry if no existing entry matches the same service name and URI, returning the persisted or existing registry.</td>
                   </tr>
                   
                   <tr >
@@ -26600,7 +27049,7 @@
                       List findByServiceNameDataChangeLastModifiedTimeGreaterThan(String serviceName, LocalDateTime localDateTime)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Queries and returns a list of service registry entries for a given service name that have been modified after the specified time.</td>
                   </tr>
                   
                   <tr >
@@ -26616,6 +27065,14 @@
             </div>
             
 
+            
+            <div class="notable-tags">
+              
+              <span class="notable-tag">Transactional methods indicate data consistency concerns for delete operations.</span>
+              
+              <span class="notable-tag">Time-based query and deletion methods suggest support for registry lifecycle management and cleanup of stale entries.</span>
+              
+            </div>
             
           </div>
         </dialog>
@@ -27496,13 +27953,13 @@
             
           </div>
           <div class="file-path">apollo-biz/src/test/java/com/ctrip/framework/apollo/biz/registry/configuration/support/ApolloServiceRegistryClearApplicationRunnerIntegrationTest.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">An integration test class that verifies the functionality of clearing unhealthy service instances from the Apollo service registry, using Spring Test annotations to configure the application context with service registry and discovery components.</div>
 
           
 
           <div class="card-footer">
             <span>
-              1 method
+              1 method &middot; 2 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -27524,7 +27981,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">An integration test class that verifies the functionality of clearing unhealthy service instances from the Apollo service registry, using Spring Test annotations to configure the application context with service registry and discovery components.</div>
 
             
 
@@ -27558,7 +28015,7 @@
                       void clearUnhealthyInstances()
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Tests that unhealthy service instances are properly cleared from the Apollo service registry during application lifecycle.</td>
                   </tr>
                   
                 </tbody>
@@ -27566,6 +28023,14 @@
             </div>
             
 
+            
+            <div class="notable-tags">
+              
+              <span class="notable-tag">Integration test configured with specific property sources (apollo.service.registry.enabled, apollo.service.discovery.enabled) and test service configuration</span>
+              
+              <span class="notable-tag">Uses @ContextConfiguration to explicitly load ApolloServiceRegistryAutoConfiguration and ApolloServiceDiscoveryAutoConfiguration beans</span>
+              
+            </div>
             
           </div>
         </dialog>
@@ -27762,13 +28227,13 @@
             
           </div>
           <div class="file-path">apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/utils/ConfigChangeContentBuilder.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">A builder utility for tracking and serializing configuration item changes (creates, updates, deletes) into a structured JSON format.</div>
 
           
 
           <div class="card-footer">
             <span>
-              10 methods
+              10 methods &middot; 2 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -27790,7 +28255,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">A builder utility for tracking and serializing configuration item changes (creates, updates, deletes) into a structured JSON format.</div>
 
             
 
@@ -27816,7 +28281,7 @@
                       ConfigChangeContentBuilder createItem(Item item)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Adds a new item to the list of created items and returns this builder for method chaining.</td>
                   </tr>
                   
                   <tr >
@@ -27824,7 +28289,7 @@
                       ConfigChangeContentBuilder updateItem(Item oldItem, Item newItem)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Records a change from an old item to a new item in the updates list and returns this builder for method chaining.</td>
                   </tr>
                   
                   <tr >
@@ -27832,7 +28297,7 @@
                       ConfigChangeContentBuilder deleteItem(Item item)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Adds an item to the list of deleted items and returns this builder for method chaining.</td>
                   </tr>
                   
                   <tr >
@@ -27840,7 +28305,7 @@
                       boolean hasContent()
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Checks whether any configuration changes (creates, updates, or deletes) have been recorded.</td>
                   </tr>
                   
                   <tr >
@@ -27848,7 +28313,7 @@
                       String build()
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Serializes all recorded configuration changes into a JSON string representation.</td>
                   </tr>
                   
                   <tr >
@@ -27856,7 +28321,7 @@
                       Item cloneItem(Item source)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Creates a deep copy of an Item object.</td>
                   </tr>
                   
                   <tr >
@@ -27864,7 +28329,7 @@
                       ConfigChangeContentBuilder convertJsonString(String content)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Parses a JSON string and populates the builder&#39;s change lists from the parsed content, returning this builder for method chaining.</td>
                   </tr>
                   
                   <tr >
@@ -27872,7 +28337,7 @@
                       List getCreateItems()
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Returns the list of items that have been recorded as created.</td>
                   </tr>
                   
                   <tr >
@@ -27880,7 +28345,7 @@
                       List getUpdateItems()
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Returns the list of item pairs that have been recorded as updated.</td>
                   </tr>
                   
                   <tr >
@@ -27888,7 +28353,7 @@
                       List getDeleteItems()
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Returns the list of items that have been recorded as deleted.</td>
                   </tr>
                   
                 </tbody>
@@ -27896,6 +28361,14 @@
             </div>
             
 
+            
+            <div class="notable-tags">
+              
+              <span class="notable-tag">Implements the builder pattern for fluent API allowing chainable configuration change tracking</span>
+              
+              <span class="notable-tag">Handles bidirectional conversion between object representation and JSON serialization of config changes</span>
+              
+            </div>
             
           </div>
         </dialog>
@@ -27911,7 +28384,7 @@
             
           </div>
           <div class="file-path">apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/utils/ConfigChangeContentBuilder.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">A simple data holder representing a pair of old and new Item values for tracking configuration updates.</div>
 
           
 
@@ -27939,7 +28412,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">A simple data holder representing a pair of old and new Item values for tracking configuration updates.</div>
 
             
 
@@ -27965,7 +28438,7 @@
                       void ItemPair(Item oldItem, Item newItem)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Constructs an ItemPair with the old item value and new item value.</td>
                   </tr>
                   
                 </tbody>
@@ -27988,13 +28461,13 @@
             
           </div>
           <div class="file-path">apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/utils/EntityManagerUtil.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">A Spring component utility for managing JPA EntityManager lifecycle, specifically for closing entity managers in asynchronous request contexts.</div>
 
           
 
           <div class="card-footer">
             <span>
-              1 method
+              1 method &middot; 2 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -28016,7 +28489,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">A Spring component utility for managing JPA EntityManager lifecycle, specifically for closing entity managers in asynchronous request contexts.</div>
 
             
 
@@ -28035,7 +28508,7 @@
                       void closeEntityManager()
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Closes the current EntityManager to prevent resource leaks in asynchronous request handling where Spring does not automatically manage lifecycle.</td>
                   </tr>
                   
                 </tbody>
@@ -28043,6 +28516,14 @@
             </div>
             
 
+            
+            <div class="notable-tags">
+              
+              <span class="notable-tag">Designed specifically for async request handling where Spring framework does not automatically close the EntityManager</span>
+              
+              <span class="notable-tag">Requires cautious usage to avoid premature closure of needed database connections</span>
+              
+            </div>
             
           </div>
         </dialog>
@@ -28058,13 +28539,13 @@
             
           </div>
           <div class="file-path">apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/utils/ReleaseKeyGenerator.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">Generates unique release keys using timestamp, application metadata, and hashed values to uniquely identify configuration releases.</div>
 
           
 
           <div class="card-footer">
             <span>
-              1 method
+              1 method &middot; 1 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -28086,7 +28567,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">Generates unique release keys using timestamp, application metadata, and hashed values to uniquely identify configuration releases.</div>
 
             
 
@@ -28112,7 +28593,7 @@
                       String generateReleaseKey(Namespace namespace)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Generates a unique release key combining timestamp, appId, cluster, namespace, and a hash of IP address and counter.</td>
                   </tr>
                   
                 </tbody>
@@ -28120,6 +28601,12 @@
             </div>
             
 
+            
+            <div class="notable-tags">
+              
+              <span class="notable-tag">Uses composite key generation strategy combining temporal and application-specific identifiers for release uniqueness</span>
+              
+            </div>
             
           </div>
         </dialog>
@@ -28135,7 +28622,7 @@
             
           </div>
           <div class="file-path">apollo-biz/src/main/java/com/ctrip/framework/apollo/biz/utils/ReleaseMessageKeyGenerator.java</div>
-          <div class="class-description clamp">Description unavailable.</div>
+          <div class="class-description clamp">Generates and parses release message keys by combining application, cluster, and namespace identifiers.</div>
 
           
 
@@ -28163,7 +28650,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Description unavailable.</div>
+            <div class="class-description">Generates and parses release message keys by combining application, cluster, and namespace identifiers.</div>
 
             
 
@@ -28182,7 +28669,7 @@
                       String generate(String appId, String cluster, String namespace)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Generates a release message key from the provided application ID, cluster name, and namespace.</td>
                   </tr>
                   
                   <tr >
@@ -28190,7 +28677,7 @@
                       List messageToList(String message)
                       
                     </td>
-                    <td>Description unavailable.</td>
+                    <td>Parses a release message key string and extracts the individual components (appId, cluster, namespace) into a list.</td>
                   </tr>
                   
                 </tbody>
@@ -28323,10 +28810,10 @@
 </main>
 
 <footer>
-  Generated July 12, 2026 at 07:21 PM UTC using claude-haiku-4-5 &middot;
+  Generated August 28, 2026 at 12:56 AM UTC using claude-haiku-4-5 &middot;
   200 file(s) parsed, 201 class(es) extracted &middot;
-  48 LLM call(s), 39 served from cache &middot;
-  96631 input / 59253 output tokens
+  14 LLM call(s), 169 served from cache &middot;
+  34512 input / 13743 output tokens
   
 </footer>
 

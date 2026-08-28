@@ -23,7 +23,7 @@ from intellisource_ai.complexity import compute_complexity
 from intellisource_ai.config import Settings
 from intellisource_ai.dependency_graph import build_dependency_graph, depends_on_by_class
 from intellisource_ai.exceptions import LLMExtractionError
-from intellisource_ai.java_parser import parse_source_tree
+from intellisource_ai.java_parser import discover_java_files, parse_source_tree
 from intellisource_ai.llm_client import LLMClient, UsageTracker
 from intellisource_ai.repo_fetcher import fetch_repository
 from intellisource_ai.report_generator import write_report
@@ -37,6 +37,7 @@ from intellisource_ai.schemas import (
     ProjectOverview,
     RunMetadata,
     SecurityFinding,
+    SecuritySeverity,
 )
 from intellisource_ai.security_scanner import scan_class
 
@@ -47,6 +48,18 @@ _BUILD_FILE_CANDIDATES = ["build.gradle.kts", "build.gradle", "pom.xml"]
 _README_CHAR_LIMIT = 4000
 _BUILD_FILE_CHAR_LIMIT = 3000
 _HOTSPOT_COUNT = 8
+
+# Spring Boot application config, in addition to the build files above --
+# together, "every class and config file" a human reviewer would consider
+# when sizing up the whole codebase for LLM ingestion (see _repo_size_stats).
+_CONFIG_FILE_GLOBS = ("application*.properties", "application*.yml", "application*.yaml")
+_EXCLUDED_CONFIG_DIR_NAMES = {"build", "target", ".git", "node_modules"}
+
+# Per-call char budget for estimating whole-repo token counts (see
+# _estimate_repo_tokens): comfortably under any model's context window even
+# at a pessimistic ~2 chars/token, so a large repository costs a handful of
+# count_tokens calls rather than one per file.
+_RAW_TOKEN_COUNT_CHUNK_CHARS = 500_000
 
 ClassKey = tuple[str, str]  # (file_path, class_name)
 
@@ -102,6 +115,26 @@ def run_pipeline(settings: Settings) -> ProjectAnalysis:
     )
     hotspots = _compute_hotspots(analyzed_classes)
 
+    java_files = discover_java_files(
+        repo_root, include_tests=settings.include_tests, max_files=settings.max_files
+    )
+    config_files = _discover_config_files(repo_root)
+    total_lines_of_code = _compute_total_loc(java_files, config_files)
+    estimated_total_tokens = _estimate_repo_tokens(java_files, config_files, anthropic_client, settings.model)
+    llm_input_characters = _compute_llm_input_characters(parse_result.classes, complexity_index)
+    estimated_llm_tokens = _estimate_llm_tokens(
+        parse_result.classes, complexity_index, anthropic_client, settings.model
+    )
+    token_savings_pct = _compute_token_savings_pct(estimated_total_tokens, estimated_llm_tokens)
+
+    severity_counts = _count_security_findings_by_severity(analyzed_classes)
+    manual_hours, manual_cost_usd, cost_savings_usd = _estimate_manual_review_roi(
+        total_lines_of_code,
+        usage_tracker.estimated_cost_usd,
+        settings.review_loc_per_hour,
+        settings.reviewer_hourly_rate_usd,
+    )
+
     metadata = RunMetadata(
         generated_at=ProjectAnalysis.now_iso(),
         model_used=settings.model,
@@ -113,6 +146,19 @@ def run_pipeline(settings: Settings) -> ProjectAnalysis:
         total_output_tokens=usage_tracker.output_tokens,
         estimated_cost_usd=usage_tracker.estimated_cost_usd,
         security_findings_total=sum(len(cls.security_findings) for cls in analyzed_classes),
+        total_lines_of_code=total_lines_of_code,
+        estimated_total_tokens=estimated_total_tokens,
+        llm_input_characters=llm_input_characters,
+        estimated_llm_tokens=estimated_llm_tokens,
+        token_savings_pct=token_savings_pct,
+        security_findings_high=severity_counts[SecuritySeverity.HIGH],
+        security_findings_medium=severity_counts[SecuritySeverity.MEDIUM],
+        security_findings_low=severity_counts[SecuritySeverity.LOW],
+        review_loc_per_hour_assumed=settings.review_loc_per_hour,
+        reviewer_hourly_rate_usd_assumed=settings.reviewer_hourly_rate_usd,
+        estimated_manual_review_hours=manual_hours,
+        estimated_manual_review_cost_usd=manual_cost_usd,
+        estimated_cost_savings_usd=cost_savings_usd,
     )
 
     analysis = ProjectAnalysis(
@@ -327,6 +373,150 @@ def _compute_hotspots(classes: list[ClassAnalysis]) -> list[str]:
     ]
     ranked = sorted(scored, key=lambda pair: (-pair[1], pair[0]))
     return [class_name for class_name, score in ranked if score > 0][:_HOTSPOT_COUNT]
+
+
+def _count_security_findings_by_severity(classes: list[ClassAnalysis]) -> dict[SecuritySeverity, int]:
+    """Tally `SecurityFinding`s by severity across every class, so the
+    report can surface a High/Medium/Low breakdown as its own top-level
+    tiles instead of requiring a reader to open Notable Findings.
+    """
+    counts = dict.fromkeys(SecuritySeverity, 0)
+    for cls in classes:
+        for finding in cls.security_findings:
+            counts[finding.severity] += 1
+    return counts
+
+
+def _estimate_manual_review_roi(
+    total_lines_of_code: int, actual_cost_usd: float, loc_per_hour: int, hourly_rate_usd: float
+) -> tuple[float, float, float]:
+    """Translate `total_lines_of_code` into a labeled ROI estimate against
+    manual code review, using the caller-supplied throughput/rate
+    assumptions (see config.py's `--review-loc-per-hour` /
+    `--reviewer-hourly-rate`) -- an estimate, not a measured figure, which
+    is why those assumed inputs are carried alongside it in `RunMetadata`.
+
+    Returns (estimated_manual_hours, estimated_manual_cost_usd, estimated_cost_savings_usd).
+    """
+    if loc_per_hour <= 0:
+        return 0.0, 0.0, 0.0
+    hours = total_lines_of_code / loc_per_hour
+    manual_cost = hours * hourly_rate_usd
+    savings = max(0.0, manual_cost - actual_cost_usd)
+    return round(hours, 1), round(manual_cost, 2), round(savings, 2)
+
+
+def _discover_config_files(repo_root: Path) -> list[Path]:
+    """Find build files (`_BUILD_FILE_CANDIDATES`) and Spring Boot
+    application config files (`_CONFIG_FILE_GLOBS`) under `repo_root`.
+    """
+    found = [repo_root / name for name in _BUILD_FILE_CANDIDATES if (repo_root / name).is_file()]
+    for pattern in _CONFIG_FILE_GLOBS:
+        found.extend(
+            f
+            for f in sorted(repo_root.rglob(pattern))
+            if not _EXCLUDED_CONFIG_DIR_NAMES.intersection(f.parts)
+        )
+    return found
+
+
+def _compute_total_loc(java_files: list[Path], config_files: list[Path]) -> int:
+    """Total physical line count across every `.java` source file and
+    recognized config file this run considered -- a raw repo-size figure,
+    distinct from the condensed per-method LOC `complexity.py` reports.
+    """
+    return sum(
+        len(path.read_text(encoding="utf-8", errors="replace").splitlines())
+        for path in java_files + config_files
+    )
+
+
+def _count_tokens_for_text(text: str, anthropic_client: Anthropic, model: str) -> int:
+    """Token count for `text` via the real Anthropic tokenizer -- never a
+    character-count heuristic. `text` is chunked to a safe per-call size
+    (`_RAW_TOKEN_COUNT_CHUNK_CHARS`) rather than counted all at once, so an
+    entire repository's worth of text costs a handful of `count_tokens`
+    calls rather than risking one oversized call.
+    """
+    if not text:
+        return 0
+    total_tokens = 0
+    for offset in range(0, len(text), _RAW_TOKEN_COUNT_CHUNK_CHARS):
+        chunk = text[offset : offset + _RAW_TOKEN_COUNT_CHUNK_CHARS]
+        try:
+            response = anthropic_client.messages.count_tokens(
+                model=model, messages=[{"role": "user", "content": chunk}]
+            )
+        except Exception as exc:
+            raise LLMExtractionError(f"Repository token estimation failed: {exc}") from exc
+        total_tokens += response.input_tokens
+    return total_tokens
+
+
+def _estimate_repo_tokens(
+    java_files: list[Path], config_files: list[Path], anthropic_client: Anthropic, model: str
+) -> int:
+    """Token count of the entire raw repository (every `.java` class file
+    plus recognized config files) via the real Anthropic tokenizer --
+    showing what tokenizing the codebase as-is would cost, in contrast to
+    the condensed text this tool actually sends the LLM (see
+    `_estimate_llm_tokens`).
+
+    This is an optional report-enrichment stat, not core analysis output --
+    unlike chunker._count_tokens (whose failure must abort the run, since
+    every batch depends on it), a failure here is logged and degrades to 0
+    rather than sinking an otherwise-successful run over a display figure.
+    """
+    all_text = "".join(
+        path.read_text(encoding="utf-8", errors="replace") for path in java_files + config_files
+    )
+    try:
+        return _count_tokens_for_text(all_text, anthropic_client, model)
+    except LLMExtractionError as exc:
+        logger.error("Raw-repository token estimation failed, reporting 0: %s", exc)
+        return 0
+
+
+def _compute_llm_input_characters(classes: list[ParsedClass], complexity_index: ComplexityIndex) -> int:
+    """Total character count of the condensed, signatures-only prompt text
+    `chunker.render_class_for_prompt` produces for every class in the
+    codebase -- what actually gets sent to the LLM. An exact `len()` count,
+    not an estimate -- no tokenizer needed to count characters.
+    """
+    return sum(len(render_class_for_prompt(cls, complexity_index)) for cls in classes)
+
+
+def _estimate_llm_tokens(
+    classes: list[ParsedClass], complexity_index: ComplexityIndex, anthropic_client: Anthropic, model: str
+) -> int:
+    """Token count of the condensed, signatures-only text this tool
+    actually sends the LLM for every class in the codebase (the same text
+    `_compute_llm_input_characters` measures in characters), via the real
+    Anthropic tokenizer. Computed for the whole codebase regardless of this
+    run's cache state, so it's a stable "what this tool's extraction costs
+    by design" figure -- not this run's actual, cache-discounted spend
+    (`RunMetadata.total_input_tokens`). Like `_estimate_repo_tokens`, this
+    is an optional report-enrichment stat: a failure is logged and
+    degrades to 0 rather than aborting the run.
+    """
+    condensed_text = "".join(render_class_for_prompt(cls, complexity_index) for cls in classes)
+    try:
+        return _count_tokens_for_text(condensed_text, anthropic_client, model)
+    except LLMExtractionError as exc:
+        logger.error("Condensed LLM-input token estimation failed, reporting 0: %s", exc)
+        return 0
+
+
+def _compute_token_savings_pct(raw_tokens: int, llm_tokens: int) -> float:
+    """Percentage reduction from tokenizing the raw repository (
+    `_estimate_repo_tokens`) to the condensed text this tool actually sends
+    the LLM (`_estimate_llm_tokens`) -- the headline "how much token cost
+    this tool saves by extracting structure instead of shipping raw
+    source" figure. 0.0 if there's no raw-token baseline to compare against.
+    """
+    if raw_tokens <= 0:
+        return 0.0
+    return round(100 * (1 - llm_tokens / raw_tokens), 1)
 
 
 def _read_truncated(repo_root: Path, candidate_names: list[str], char_limit: int) -> str | None:

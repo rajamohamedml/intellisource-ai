@@ -27,6 +27,14 @@ DEFAULT_BATCH_SIZE = 6
 DEFAULT_OUTPUT_PATH = Path("output/analysis.json")
 DEFAULT_TOKEN_CEILING_PER_BATCH = 4000
 DEFAULT_GIT_HISTORY_DEPTH = 200
+# ROI-estimate assumptions, used only to translate the run's actual cost
+# into a "vs. manual review" comparison in the HTML report -- a labeled
+# estimate, not a measured figure. 200 LOC/hour is the conservative end of
+# commonly cited effective (defect-finding) code-review throughput; $75/hour
+# is a generic blended senior-engineer rate. Both are overridable per-org,
+# since neither is a universal constant.
+DEFAULT_REVIEW_LOC_PER_HOUR = 200
+DEFAULT_REVIEWER_HOURLY_RATE_USD = 75.0
 
 
 @dataclass(frozen=True)
@@ -48,6 +56,8 @@ class Settings:
     cache_dir: Path
     local_path: Path | None = None
     git_history_depth: int = DEFAULT_GIT_HISTORY_DEPTH
+    review_loc_per_hour: int = DEFAULT_REVIEW_LOC_PER_HOUR
+    reviewer_hourly_rate_usd: float = DEFAULT_REVIEWER_HOURLY_RATE_USD
 
     @property
     def llm_cache_path(self) -> Path:
@@ -166,6 +176,20 @@ def build_arg_parser() -> argparse.ArgumentParser:
         "Ignored with --local-path, since no clone happens.",
     )
     parser.add_argument(
+        "--review-loc-per-hour",
+        type=int,
+        default=None,
+        help="Assumed manual code-review throughput (lines/hour), used only for the "
+        f"report's ROI estimate (default: {DEFAULT_REVIEW_LOC_PER_HOUR}).",
+    )
+    parser.add_argument(
+        "--reviewer-hourly-rate",
+        type=float,
+        default=None,
+        help="Assumed reviewer hourly rate in USD, used only for the report's ROI "
+        f"estimate (default: {DEFAULT_REVIEWER_HOURLY_RATE_USD}).",
+    )
+    parser.add_argument(
         "--no-html-report",
         action="store_true",
         help="Skip generating output/report.html; only write the JSON deliverable.",
@@ -242,4 +266,8 @@ def resolve_settings(args: argparse.Namespace) -> Settings:
         cache_dir=Path(".cache") / (cache_key_name or "repo"),
         local_path=local_path,
         git_history_depth=args.git_history_depth or DEFAULT_GIT_HISTORY_DEPTH,
+        review_loc_per_hour=args.review_loc_per_hour
+        or int(os.environ.get("REVIEW_LOC_PER_HOUR", DEFAULT_REVIEW_LOC_PER_HOUR)),
+        reviewer_hourly_rate_usd=args.reviewer_hourly_rate
+        or float(os.environ.get("REVIEWER_HOURLY_RATE_USD", DEFAULT_REVIEWER_HOURLY_RATE_USD)),
     )

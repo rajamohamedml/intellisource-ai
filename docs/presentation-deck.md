@@ -43,16 +43,6 @@ LLM called **only** for semantic synthesis — turning code into plain business 
 
 ---
 
-## How the Token Reduction Works
-
-Raw `.java` source → AST parse → strip bodies, imports, boilerplate → keep **signatures + Javadoc + annotations + complexity flags** → that's what the LLM sees
-
-- The model only needs to know what a class *means* — not its implementation
-- Everything free (complexity, security, dependencies, churn) is computed by code, not tokens
-- Result on a real sample: **244K raw tokens → 69K sent = 71.7% reduction** — measured with the real Anthropic tokenizer, not a character-count guess
-
----
-
 ## Verified Cost Efficiency — Real Run, Real Numbers
 
 **apolloconfig/apollo** — a real production Java codebase
@@ -87,6 +77,16 @@ A number engineering leadership can cite directly — not an estimate buried in 
 - **Churn-weighted hotspots** — combines commit frequency with complexity to flag the code that's both unstable *and* hard to change safely
 - **Guaranteed data integrity** — architecture, complexity, dependencies, and churn are all *parsed*, never guessed; an LLM never invents structure
 - Any class the model can't describe is explicitly marked `"unavailable"` — never silently fabricated
+
+---
+
+## How the Token Reduction Works
+
+Raw `.java` source → AST parse → strip bodies, imports, boilerplate → keep **signatures + Javadoc + annotations + complexity flags** → that's what the LLM sees
+
+- The model only needs to know what a class *means* — not its implementation
+- Everything free (complexity, security, dependencies, churn) is computed by code, not tokens
+- Result on a real sample: **244K raw tokens → 69K sent = 71.7% reduction** — measured with the real Anthropic tokenizer, not a character-count guess
 
 ---
 

@@ -20,6 +20,7 @@ Enterprise Codebase Intelligence & Automated Architectural Discovery
 - Instantly reverse-engineers unfamiliar repositories into human-readable **and** machine-readable documentation
 - Structural engine: **Java/Spring Boot today** — Python, TypeScript, JavaScript on the roadmap
 - Doubles as a ready-made **context layer for AI coding agents** — query the graph instead of re-deriving architecture from raw source every task
+- Built for **engineering leaders, consulting firms, and AI automation platforms** who inherit codebases they didn't write
 
 ---
 
@@ -63,6 +64,7 @@ Raw `.java` source → AST parse → strip bodies, imports, boilerplate → keep
 | Served from cache | 169 / 201 classes |
 | Total cost | **~$0.10** |
 | Token reduction | **71.7%** |
+| Security findings | 15 High / 0 Medium / 1 Low |
 
 Not a projection — this is one reproducible run.
 
@@ -76,6 +78,15 @@ Every run converts its LOC count into a manual-review comparison, at a **disclos
 - **~$8,370** saved vs. manual review at that pace
 
 A number engineering leadership can cite directly — not an estimate buried in a slide.
+
+---
+
+## De-Risked Change Management
+
+- **Dependency-aware risk mapping** — ranks classes by "fan-in" (how many others depend on them) to surface the highest blast-radius components before you touch them
+- **Churn-weighted hotspots** — combines commit frequency with complexity to flag the code that's both unstable *and* hard to change safely
+- **Guaranteed data integrity** — architecture, complexity, dependencies, and churn are all *parsed*, never guessed; an LLM never invents structure
+- Any class the model can't describe is explicitly marked `"unavailable"` — never silently fabricated
 
 ---
 

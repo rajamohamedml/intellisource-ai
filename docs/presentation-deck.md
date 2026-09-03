@@ -1,11 +1,11 @@
 ---
 marp: true
-theme: default
+theme: gaia
 paginate: true
 size: 16:9
 ---
 
-<!-- _class: lead -->
+<!-- _class: lead invert -->
 
 # IntelliSource AI
 ### "To derive Intelligence from the Source Code"
@@ -107,7 +107,7 @@ Raw `.java` source → AST parse → strip bodies, imports, boilerplate → keep
 
 ---
 
-<!-- _class: lead -->
+<!-- _class: lead invert -->
 
 ## What's Next: The "Brain" for AI Agents
 

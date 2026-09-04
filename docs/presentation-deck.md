@@ -16,16 +16,10 @@ Enterprise Codebase Intelligence & Automated Architectural Discovery
 
 ## What Is It?
 
-<style scoped>
-section { font-size: 0.82em; }
-li { margin-bottom: 0.35em; }
-</style>
-
 - An **Enterprise Codebase Intelligence** platform — a building block for autonomous software engineering
-- Instantly reverse-engineers unfamiliar repos into human- **and** machine-readable documentation
+- Reverse-engineers unfamiliar repos into human- **and** machine-readable documentation, in minutes
 - Structural engine: **Java/Spring Boot today** — Python, TypeScript, JavaScript on the roadmap
-- A ready-made **context layer for AI coding agents** — query the graph instead of re-deriving architecture from raw source every task
-- Built for **engineering leaders, consulting firms, and AI automation platforms**
+- A ready-made **context layer for AI coding agents**, built for engineering leaders, consulting firms, and AI automation platforms
 
 ---
 
@@ -77,11 +71,6 @@ A number engineering leadership can cite directly — not an estimate buried in 
 ---
 
 ## De-Risked Change Management
-
-<style scoped>
-section { font-size: 0.82em; }
-li { margin-bottom: 0.35em; }
-</style>
 
 - **Dependency-aware risk mapping** — ranks classes by "fan-in" to surface the highest blast-radius components before you touch them
 - **Churn-weighted hotspots** — combines commit frequency with complexity to flag code that's unstable *and* hard to change safely

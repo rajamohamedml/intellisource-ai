@@ -28,6 +28,7 @@ def main() -> int:
 
     try:
         settings = resolve_settings(args)
+        #Call the pipeline to run the analysis
         run_pipeline(settings)
     except IntelliSourceAIError as exc:
         # Every failure mode this tool anticipates is one of our own named

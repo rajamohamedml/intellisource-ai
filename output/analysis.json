@@ -2,28 +2,30 @@
   "schema_version": "1.3",
   "project": {
     "name": "Apollo",
-    "description": "Apollo is a reliable, centralized configuration management system designed for microservice and distributed application scenarios. It provides unified management of configurations across different environments, clusters, and applications with real-time hot-release capabilities. The system includes a server component built on Spring Boot and Spring Cloud, along with SDKs for Java and .NET that integrate seamlessly with various runtime environments.",
+    "description": "Apollo is a reliable, centralized configuration management system designed for microservice architectures. It enables teams to manage configurations across different applications, environments, and clusters from a single unified interface. The system supports real-time configuration updates (hot release), version management, grayscale releases, and provides comprehensive authorization and audit capabilities. Apollo consists of a Spring Boot/Spring Cloud-based server and multiple client SDKs (Java and .Net) that operate independently of application frameworks.",
     "tech_stack": [
       "Spring Boot 4.0.5",
       "Spring Cloud 2025.1.1",
       "Spring Cloud Alibaba 2025.1.0.0",
+      "Spring Security",
       "Spring Data JPA",
-      "Jakarta Mail",
-      "Apache HttpClient 4.5.14",
+      "Jakarta Mail 2.0.2",
+      "Apache Commons Lang 3.18.0",
       "Guava 32.0.0",
-      "Apache Commons Lang3 3.18.0",
-      "Javassist 3.23.1-GA"
+      "Apache HttpClient 4.5.14",
+      "Jackson 2.x",
+      "Swagger/OpenAPI 2.2.37",
+      "Java 17"
     ],
-    "architecture_summary": "Apollo is organized into a layered, modular architecture with clear separation of concerns: Controllers expose REST APIs for managing configurations (apps, clusters, namespaces, releases, items); Services coordinate business logic across repositories and domain entities; Repositories provide data access via Spring Data JPA; Entities represent core domain objects with soft-delete support and audit tracking. Cross-cutting concerns are handled through AOP aspects (namespace locking, audit span capture), servlet filters (authentication), and HTTP interceptors. The system includes audit logging with distributed tracing support, gray release management with rule caching, message-based release notification, and database-backed service discovery and registry components. Configuration is managed through Spring Boot auto-configuration with feature toggles for audit logging and service registry functionality.",
+    "architecture_summary": "Apollo follows a multi-tier, microservice-oriented architecture. The server-side (Admin Service) is built on Spring Boot and Spring Cloud with a Spring Security-based authentication layer. The system is organized around domain modules including: (1) Configuration Management (apps, namespaces, clusters, configuration items, releases); (2) Gray Release Management (branch strategy, release rules); (3) Service Discovery & Registry (database-backed service discovery with caching); (4) Audit Logging (distributed tracing, operation tracking, data influence recording); (5) Message Distribution (database-driven release message propagation). The codebase uses JPA for persistence, RESTful controllers for API exposure, aspect-oriented programming for cross-cutting concerns (locking, audit tracing), and repository patterns for data access. Core business logic is coordinated through service classes that manage entity lifecycles and enforce business rules.",
     "main_modules": [
-      "Application Management",
-      "Namespace and Cluster Configuration",
-      "Release Management and Gray Deployments",
-      "Configuration Items (Key-Value Pairs)",
-      "Audit Logging and Tracing",
-      "Access Control and Authentication",
-      "Service Discovery and Registry",
-      "Release Messaging and Notifications"
+      "Configuration Management (apps, namespaces, clusters, items, releases)",
+      "Gray Release & Branching (canary deployments, release rules)",
+      "Service Discovery & Registry (database-backed instance management)",
+      "Audit Logging & Tracing (operation tracking, data influence capture)",
+      "Release Message Distribution (change notification and propagation)",
+      "Access Control & Authorization (access keys, privileges, authentication)",
+      "Admin API Controllers (REST endpoints for all management operations)"
     ]
   },
   "classes": [
@@ -5023,70 +5025,71 @@
       "package": "com.ctrip.framework.apollo.audit.entity",
       "class_name": "Builder",
       "class_type": "entity",
-      "description": "Inner builder class for constructing ApolloAuditLog instances with fluent setter methods for audit log properties including trace identifiers, operator information, operation details, and timestamp.",
+      "description": "Builder class for constructing ApolloAuditLog entities with fluent API, supporting tracing context (trace/span IDs) and audit event metadata (operator, operation type, description, and timestamp).",
       "rest_endpoints": [],
       "methods": [
         {
           "signature": "void Builder()",
-          "description": "Constructs a new empty Builder instance for ApolloAuditLogDataInfluence.",
+          "description": "Constructor initializing a new Builder instance for ApolloAuditLogDataInfluence.",
           "loc": 1,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Builder spanId(String val)",
-          "description": "Sets the span ID for distributed tracing correlation and returns this builder for method chaining.",
+          "description": "Sets the span ID linking this data influence to a distributed trace and returns this builder for method chaining.",
           "loc": 4,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Builder entityId(String val)",
-          "description": "Sets the entity ID identifying the affected resource and returns this builder for method chaining.",
+          "description": "Sets the identifier of the entity that was modified and returns this builder for method chaining.",
           "loc": 4,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Builder entityName(String val)",
-          "description": "Sets the entity name/type and returns this builder for method chaining.",
+          "description": "Sets the name/type of the entity that was modified and returns this builder for method chaining.",
           "loc": 4,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Builder fieldName(String val)",
-          "description": "Sets the field name that was modified and returns this builder for method chaining.",
+          "description": "Sets the name of the specific field within the entity that was changed and returns this builder for method chaining.",
           "loc": 4,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Builder oldVal(String val)",
-          "description": "Sets the previous value before the modification and returns this builder for method chaining.",
+          "description": "Sets the previous value of the modified field for change tracking and returns this builder for method chaining.",
           "loc": 4,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "Builder newVal(String val)",
-          "description": "Sets the new value after the modification and returns this builder for method chaining.",
+          "description": "Sets the new value of the modified field and returns this builder for method chaining.",
           "loc": 4,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         },
         {
           "signature": "ApolloAuditLogDataInfluence build()",
-          "description": "Constructs and returns the final ApolloAuditLogDataInfluence instance with all configured properties.",
+          "description": "Constructs and returns the fully initialized ApolloAuditLogDataInfluence entity capturing the field-level change details.",
           "loc": 3,
           "cyclomatic_estimate": 1,
           "high_complexity": false
         }
       ],
       "notable_aspects": [
-        "Implements the Builder design pattern for fluent object construction",
-        "Supports distributed tracing with traceId, spanId, parentSpanId, and followsFromSpanId fields",
-        "Captures before/after values to track data mutations in audit records"
+        "Builder pattern implementation with fluent API for constructing immutable audit log entities",
+        "Tracing context integration (trace/span IDs) enables distributed request tracking across Apollo audit logs",
+        "Builder pattern for constructing data influence audit records tracking field-level changes",
+        "Captures old and new values enabling detailed change auditing and compliance tracking"
       ],
       "security_findings": [],
       "depends_on": [],
@@ -13826,15 +13829,15 @@
     }
   ],
   "metadata": {
-    "generated_at": "2026-08-28T00:56:39.647276+00:00",
+    "generated_at": "2026-09-03T23:21:03.820006+00:00",
     "model_used": "claude-haiku-4-5",
     "total_files_parsed": 200,
     "parse_errors": [],
-    "llm_calls_made": 14,
-    "llm_calls_cached": 169,
-    "total_input_tokens": 34512,
-    "total_output_tokens": 13743,
-    "estimated_cost_usd": 0.103227,
+    "llm_calls_made": 2,
+    "llm_calls_cached": 199,
+    "total_input_tokens": 11846,
+    "total_output_tokens": 1741,
+    "estimated_cost_usd": 0.020551,
     "security_findings_total": 16,
     "total_lines_of_code": 22319,
     "estimated_total_tokens": 244155,
@@ -13848,7 +13851,7 @@
     "reviewer_hourly_rate_usd_assumed": 75.0,
     "estimated_manual_review_hours": 111.6,
     "estimated_manual_review_cost_usd": 8369.62,
-    "estimated_cost_savings_usd": 8369.52
+    "estimated_cost_savings_usd": 8369.6
   },
   "dependency_graph": [
     {

@@ -394,10 +394,10 @@
 
 <header class="hero">
   <h1>Apollo</h1>
-  <p class="desc">Apollo is a reliable, centralized configuration management system designed for microservice and distributed application scenarios. It provides unified management of configurations across different environments, clusters, and applications with real-time hot-release capabilities. The system includes a server component built on Spring Boot and Spring Cloud, along with SDKs for Java and .NET that integrate seamlessly with various runtime environments.</p>
+  <p class="desc">Apollo is a reliable, centralized configuration management system designed for microservice architectures. It enables teams to manage configurations across different applications, environments, and clusters from a single unified interface. The system supports real-time configuration updates (hot release), version management, grayscale releases, and provides comprehensive authorization and audit capabilities. Apollo consists of a Spring Boot/Spring Cloud-based server and multiple client SDKs (Java and .Net) that operate independently of application frameworks.</p>
   <div class="generated-meta">
     <span aria-hidden="true">🕐</span>
-    Generated August 28, 2026 at 12:56 AM UTC
+    Generated September 03, 2026 at 11:21 PM UTC
   </div>
   
   <div class="badges">
@@ -409,42 +409,46 @@
     
     <span class="tech-badge">Spring Cloud Alibaba 2025.1.0.0</span>
     
+    <span class="tech-badge">Spring Security</span>
+    
     <span class="tech-badge">Spring Data JPA</span>
     
-    <span class="tech-badge">Jakarta Mail</span>
+    <span class="tech-badge">Jakarta Mail 2.0.2</span>
     
-    <span class="tech-badge">Apache HttpClient 4.5.14</span>
+    <span class="tech-badge">Apache Commons Lang 3.18.0</span>
     
     <span class="tech-badge">Guava 32.0.0</span>
     
-    <span class="tech-badge">Apache Commons Lang3 3.18.0</span>
+    <span class="tech-badge">Apache HttpClient 4.5.14</span>
     
-    <span class="tech-badge">Javassist 3.23.1-GA</span>
+    <span class="tech-badge">Jackson 2.x</span>
+    
+    <span class="tech-badge">Swagger/OpenAPI 2.2.37</span>
+    
+    <span class="tech-badge">Java 17</span>
     
   </div>
   
   
-  <div class="architecture-note">Apollo is organized into a layered, modular architecture with clear separation of concerns: Controllers expose REST APIs for managing configurations (apps, clusters, namespaces, releases, items); Services coordinate business logic across repositories and domain entities; Repositories provide data access via Spring Data JPA; Entities represent core domain objects with soft-delete support and audit tracking. Cross-cutting concerns are handled through AOP aspects (namespace locking, audit span capture), servlet filters (authentication), and HTTP interceptors. The system includes audit logging with distributed tracing support, gray release management with rule caching, message-based release notification, and database-backed service discovery and registry components. Configuration is managed through Spring Boot auto-configuration with feature toggles for audit logging and service registry functionality.</div>
+  <div class="architecture-note">Apollo follows a multi-tier, microservice-oriented architecture. The server-side (Admin Service) is built on Spring Boot and Spring Cloud with a Spring Security-based authentication layer. The system is organized around domain modules including: (1) Configuration Management (apps, namespaces, clusters, configuration items, releases); (2) Gray Release Management (branch strategy, release rules); (3) Service Discovery &amp; Registry (database-backed service discovery with caching); (4) Audit Logging (distributed tracing, operation tracking, data influence recording); (5) Message Distribution (database-driven release message propagation). The codebase uses JPA for persistence, RESTful controllers for API exposure, aspect-oriented programming for cross-cutting concerns (locking, audit tracing), and repository patterns for data access. Core business logic is coordinated through service classes that manage entity lifecycles and enforce business rules.</div>
   
   
   <div class="key-modules">
     <span class="key-modules-label">Domain Modules:</span>
     
-    <span class="module-chip">Application Management</span>
+    <span class="module-chip">Configuration Management (apps, namespaces, clusters, items, releases)</span>
     
-    <span class="module-chip">Namespace and Cluster Configuration</span>
+    <span class="module-chip">Gray Release &amp; Branching (canary deployments, release rules)</span>
     
-    <span class="module-chip">Release Management and Gray Deployments</span>
+    <span class="module-chip">Service Discovery &amp; Registry (database-backed instance management)</span>
     
-    <span class="module-chip">Configuration Items (Key-Value Pairs)</span>
+    <span class="module-chip">Audit Logging &amp; Tracing (operation tracking, data influence capture)</span>
     
-    <span class="module-chip">Audit Logging and Tracing</span>
+    <span class="module-chip">Release Message Distribution (change notification and propagation)</span>
     
-    <span class="module-chip">Access Control and Authentication</span>
+    <span class="module-chip">Access Control &amp; Authorization (access keys, privileges, authentication)</span>
     
-    <span class="module-chip">Service Discovery and Registry</span>
-    
-    <span class="module-chip">Release Messaging and Notifications</span>
+    <span class="module-chip">Admin API Controllers (REST endpoints for all management operations)</span>
     
   </div>
   
@@ -461,8 +465,8 @@
     <div class="stat-card severity-high"><div class="value">15</div><div class="label">High Severity</div></div>
     <div class="stat-card severity-medium"><div class="value">0</div><div class="label">Medium Severity</div></div>
     <div class="stat-card"><div class="value">1</div><div class="label">Low Severity</div></div>
-    <div class="stat-card"><div class="value">92.3%</div><div class="label">Cache Hit Rate</div></div>
-    <div class="stat-card"><div class="value">$0.1032</div><div class="label">Estimated Cost</div></div>
+    <div class="stat-card"><div class="value">99.0%</div><div class="label">Cache Hit Rate</div></div>
+    <div class="stat-card"><div class="value">$0.0206</div><div class="label">Estimated Cost</div></div>
     <div class="stat-card"><div class="value">22,319</div><div class="label">Lines of Code</div></div>
     <div class="stat-card"><div class="value">244,155</div><div class="label">Est. Repo Tokens</div></div>
     <div class="stat-card"><div class="value">210,028</div><div class="label">Chars Sent to LLM</div></div>
@@ -470,7 +474,7 @@
     <div class="stat-card highlight"><div class="value">71.7%</div><div class="label">Token Cost Saved</div></div>
     <div class="stat-card"><div class="value">111.6</div><div class="label">Est. Manual Review Hours</div></div>
     <div class="stat-card"><div class="value">$8,369.62</div><div class="label">Est. Manual Review Cost</div></div>
-    <div class="stat-card highlight"><div class="value">$8,369.52</div><div class="label">Est. Cost Savings</div></div>
+    <div class="stat-card highlight"><div class="value">$8,369.60</div><div class="label">Est. Cost Savings</div></div>
   </div>
   <p class="stats-caption">
     Manual-review estimate assumes 200 LOC/hour at
@@ -987,7 +991,7 @@
       <summary>
         <span aria-hidden="true">💡</span>
         <span>Notable Aspects</span>
-        <span class="count-badge">279</span>
+        <span class="count-badge">280</span>
       </summary>
       
       <div class="findings-subcategories">
@@ -996,7 +1000,7 @@
           <summary>
             <span aria-hidden="true">🔹</span>
             <span>Other</span>
-            <span class="count-badge">100</span>
+            <span class="count-badge">99</span>
           </summary>
           <div class="findings-list">
             
@@ -1168,11 +1172,6 @@
             <div class="finding-item">
               <span class="finding-text">Includes distributed tracing fields (traceId, spanId, parentSpanId, followsFromSpanId) for request correlation across services</span>
               <span class="source">ApolloAuditLog &mdash; apollo-audit/apollo-audit-impl/src/main/java/com/ctrip/framework/apollo/audit/entity/ApolloAuditLog.java</span>
-            </div>
-            
-            <div class="finding-item">
-              <span class="finding-text">Supports distributed tracing with traceId, spanId, parentSpanId, and followsFromSpanId fields</span>
-              <span class="source">Builder &mdash; apollo-audit/apollo-audit-impl/src/main/java/com/ctrip/framework/apollo/audit/entity/ApolloAuditLogDataInfluence.java</span>
             </div>
             
             <div class="finding-item">
@@ -1507,7 +1506,7 @@
           <summary>
             <span aria-hidden="true">📝</span>
             <span>Logging &amp; Observability</span>
-            <span class="count-badge">64</span>
+            <span class="count-badge">67</span>
           </summary>
           <div class="findings-list">
             
@@ -1612,7 +1611,22 @@
             </div>
             
             <div class="finding-item">
-              <span class="finding-text">Captures before/after values to track data mutations in audit records</span>
+              <span class="finding-text">Builder pattern implementation with fluent API for constructing immutable audit log entities</span>
+              <span class="source">Builder &mdash; apollo-audit/apollo-audit-impl/src/main/java/com/ctrip/framework/apollo/audit/entity/ApolloAuditLogDataInfluence.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Tracing context integration (trace/span IDs) enables distributed request tracking across Apollo audit logs</span>
+              <span class="source">Builder &mdash; apollo-audit/apollo-audit-impl/src/main/java/com/ctrip/framework/apollo/audit/entity/ApolloAuditLogDataInfluence.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Builder pattern for constructing data influence audit records tracking field-level changes</span>
+              <span class="source">Builder &mdash; apollo-audit/apollo-audit-impl/src/main/java/com/ctrip/framework/apollo/audit/entity/ApolloAuditLogDataInfluence.java</span>
+            </div>
+            
+            <div class="finding-item">
+              <span class="finding-text">Captures old and new values enabling detailed change auditing and compliance tracking</span>
               <span class="source">Builder &mdash; apollo-audit/apollo-audit-impl/src/main/java/com/ctrip/framework/apollo/audit/entity/ApolloAuditLogDataInfluence.java</span>
             </div>
             
@@ -2064,7 +2078,7 @@
           <summary>
             <span aria-hidden="true">🧩</span>
             <span>Design Patterns &amp; Mapping</span>
-            <span class="count-badge">18</span>
+            <span class="count-badge">17</span>
           </summary>
           <div class="findings-list">
             
@@ -2091,11 +2105,6 @@
             <div class="finding-item">
               <span class="finding-text">Implements the Builder design pattern with fluent method chaining for most configuration methods</span>
               <span class="source">AuditSpanBuilder &mdash; apollo-audit/apollo-audit-impl/src/main/java/com/ctrip/framework/apollo/audit/context/ApolloAuditTracer.java</span>
-            </div>
-            
-            <div class="finding-item">
-              <span class="finding-text">Implements the Builder design pattern for fluent object construction</span>
-              <span class="source">Builder &mdash; apollo-audit/apollo-audit-impl/src/main/java/com/ctrip/framework/apollo/audit/entity/ApolloAuditLogDataInfluence.java</span>
             </div>
             
             <div class="finding-item">
@@ -14691,13 +14700,13 @@
             
           </div>
           <div class="file-path">apollo-audit/apollo-audit-impl/src/main/java/com/ctrip/framework/apollo/audit/entity/ApolloAuditLogDataInfluence.java</div>
-          <div class="class-description clamp">Inner builder class for constructing ApolloAuditLog instances with fluent setter methods for audit log properties including trace identifiers, operator information, operation details, and timestamp.</div>
+          <div class="class-description clamp">Builder class for constructing ApolloAuditLog entities with fluent API, supporting tracing context (trace/span IDs) and audit event metadata (operator, operation type, description, and timestamp).</div>
 
           
 
           <div class="card-footer">
             <span>
-              8 methods &middot; 3 notable
+              8 methods &middot; 4 notable
             </span>
             <span class="view-details">View details &rarr;</span>
           </div>
@@ -14719,7 +14728,7 @@
             <button type="button" class="dialog-close" aria-label="Close">&times;</button>
           </div>
           <div class="dialog-body">
-            <div class="class-description">Inner builder class for constructing ApolloAuditLog instances with fluent setter methods for audit log properties including trace identifiers, operator information, operation details, and timestamp.</div>
+            <div class="class-description">Builder class for constructing ApolloAuditLog entities with fluent API, supporting tracing context (trace/span IDs) and audit event metadata (operator, operation type, description, and timestamp).</div>
 
             
 
@@ -14738,7 +14747,7 @@
                       void Builder()
                       
                     </td>
-                    <td>Constructs a new empty Builder instance for ApolloAuditLogDataInfluence.</td>
+                    <td>Constructor initializing a new Builder instance for ApolloAuditLogDataInfluence.</td>
                   </tr>
                   
                   <tr >
@@ -14746,7 +14755,7 @@
                       Builder spanId(String val)
                       
                     </td>
-                    <td>Sets the span ID for distributed tracing correlation and returns this builder for method chaining.</td>
+                    <td>Sets the span ID linking this data influence to a distributed trace and returns this builder for method chaining.</td>
                   </tr>
                   
                   <tr >
@@ -14754,7 +14763,7 @@
                       Builder entityId(String val)
                       
                     </td>
-                    <td>Sets the entity ID identifying the affected resource and returns this builder for method chaining.</td>
+                    <td>Sets the identifier of the entity that was modified and returns this builder for method chaining.</td>
                   </tr>
                   
                   <tr >
@@ -14762,7 +14771,7 @@
                       Builder entityName(String val)
                       
                     </td>
-                    <td>Sets the entity name/type and returns this builder for method chaining.</td>
+                    <td>Sets the name/type of the entity that was modified and returns this builder for method chaining.</td>
                   </tr>
                   
                   <tr >
@@ -14770,7 +14779,7 @@
                       Builder fieldName(String val)
                       
                     </td>
-                    <td>Sets the field name that was modified and returns this builder for method chaining.</td>
+                    <td>Sets the name of the specific field within the entity that was changed and returns this builder for method chaining.</td>
                   </tr>
                   
                   <tr >
@@ -14778,7 +14787,7 @@
                       Builder oldVal(String val)
                       
                     </td>
-                    <td>Sets the previous value before the modification and returns this builder for method chaining.</td>
+                    <td>Sets the previous value of the modified field for change tracking and returns this builder for method chaining.</td>
                   </tr>
                   
                   <tr >
@@ -14786,7 +14795,7 @@
                       Builder newVal(String val)
                       
                     </td>
-                    <td>Sets the new value after the modification and returns this builder for method chaining.</td>
+                    <td>Sets the new value of the modified field and returns this builder for method chaining.</td>
                   </tr>
                   
                   <tr >
@@ -14794,7 +14803,7 @@
                       ApolloAuditLogDataInfluence build()
                       
                     </td>
-                    <td>Constructs and returns the final ApolloAuditLogDataInfluence instance with all configured properties.</td>
+                    <td>Constructs and returns the fully initialized ApolloAuditLogDataInfluence entity capturing the field-level change details.</td>
                   </tr>
                   
                 </tbody>
@@ -14805,11 +14814,13 @@
             
             <div class="notable-tags">
               
-              <span class="notable-tag">Implements the Builder design pattern for fluent object construction</span>
+              <span class="notable-tag">Builder pattern implementation with fluent API for constructing immutable audit log entities</span>
               
-              <span class="notable-tag">Supports distributed tracing with traceId, spanId, parentSpanId, and followsFromSpanId fields</span>
+              <span class="notable-tag">Tracing context integration (trace/span IDs) enables distributed request tracking across Apollo audit logs</span>
               
-              <span class="notable-tag">Captures before/after values to track data mutations in audit records</span>
+              <span class="notable-tag">Builder pattern for constructing data influence audit records tracking field-level changes</span>
+              
+              <span class="notable-tag">Captures old and new values enabling detailed change auditing and compliance tracking</span>
               
             </div>
             
@@ -28810,10 +28821,10 @@
 </main>
 
 <footer>
-  Generated August 28, 2026 at 12:56 AM UTC using claude-haiku-4-5 &middot;
+  Generated September 03, 2026 at 11:21 PM UTC using claude-haiku-4-5 &middot;
   200 file(s) parsed, 201 class(es) extracted &middot;
-  14 LLM call(s), 169 served from cache &middot;
-  34512 input / 13743 output tokens
+  2 LLM call(s), 199 served from cache &middot;
+  11846 input / 1741 output tokens
   
 </footer>
 

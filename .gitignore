@@ -22,3 +22,6 @@ dist/
 .vscode/
 .idea/
 .DS_Store
+
+# Local Python virtual environment
+.venv/

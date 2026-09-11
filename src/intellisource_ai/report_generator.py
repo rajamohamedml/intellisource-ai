@@ -382,10 +382,17 @@ def render_report(analysis: ProjectAnalysis) -> str:
     env.filters["usd"] = lambda n: f"{n:,.2f}"
     template = env.get_template(_TEMPLATE_NAME)
 
-    total_llm_calls = analysis.metadata.llm_calls_made + analysis.metadata.llm_calls_cached
+    total_classes = len(analysis.classes)
+    # Cache hits are counted per-class (cache.hits), while llm_calls_made counts
+    # batched API calls -- these are different units and must not be summed
+    # together as a denominator. The correct hit rate is cached classes over
+    # total classes analyzed.
     cache_hit_rate_pct = (
-        round(100 * analysis.metadata.llm_calls_cached / total_llm_calls, 1) if total_llm_calls else 0.0
+        round(100 * analysis.metadata.llm_calls_cached / total_classes, 1) if total_classes else 0.0
     )
+    raw_tokens = analysis.metadata.estimated_total_tokens
+    actual_tokens = analysis.metadata.total_input_tokens + analysis.metadata.total_output_tokens
+    cache_adjusted_savings_pct = round(100 * (1 - actual_tokens / raw_tokens), 1) if raw_tokens else 0.0
 
     return template.render(
         project=analysis.project,
@@ -394,11 +401,12 @@ def render_report(analysis: ProjectAnalysis) -> str:
         modules=_group_by_module(analysis.classes),
         accent_colors=_ACCENT_COLORS,
         notable_findings=_collect_notable_findings(analysis.classes, analysis.hotspots),
-        total_classes=len(analysis.classes),
+        total_classes=total_classes,
         total_methods=sum(len(c.methods) for c in analysis.classes),
         total_endpoints=sum(len(c.rest_endpoints) for c in analysis.classes),
         high_complexity_count=sum(1 for c in analysis.classes for m in c.methods if m.high_complexity),
         cache_hit_rate_pct=cache_hit_rate_pct,
+        cache_adjusted_savings_pct=cache_adjusted_savings_pct,
     )
 
 

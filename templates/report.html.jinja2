@@ -84,51 +84,128 @@
     font-size: 12px;
     overflow-wrap: anywhere;
   }
-  main { max-width: 1200px; margin: -24px auto 60px; padding: 0 24px; }
+  main { max-width: 1200px; margin: 48px auto 60px; padding: 0 24px; }
 
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 14px;
-    margin-bottom: 28px;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
   }
   .stat-card {
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 16px;
+    padding: 14px 16px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.35);
     min-width: 0;
+    position: relative;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
   }
-  .stat-card .value { font-size: 24px; font-weight: 700; color: var(--accent); }
+  .stat-card:hover, .stat-card:focus-within, .stat-card.tooltip-pinned {
+    border-color: rgba(255,255,255,0.2);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+    transform: translateY(-1px);
+    /* The transform above creates a new stacking context for this card, which
+       would otherwise trap the tooltip's z-index below later sibling cards
+       in the grid -- elevate the whole card so its tooltip can layer above
+       every neighboring tile, not just its own stacking context. */
+    z-index: 30;
+  }
+  .stat-card .value { font-size: 22px; font-weight: 700; color: var(--accent); }
   .stat-card .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .stat-card .label .label-suffix { text-transform: none; letter-spacing: 0; }
+  .tile-info {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: help;
+    padding: 0;
+    opacity: 0.4;
+    transition: opacity 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  }
+  .stat-card:hover .tile-info { opacity: 0.75; }
+  .tile-info:hover, .tile-info:focus-visible, .tile-info[aria-expanded="true"] {
+    color: var(--accent);
+    opacity: 1;
+    outline: none;
+    transform: scale(1.12);
+  }
+  .tile-info:focus-visible { box-shadow: 0 0 0 3px rgba(57,135,229,0.35); border-radius: 50%; }
+  .tile-tooltip {
+    position: absolute;
+    top: 32px;
+    right: 10px;
+    z-index: 20;
+    width: 230px;
+    max-width: min(230px, calc(100vw - 32px));
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.5);
+    padding: 12px 14px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px) scale(0.98);
+    transform-origin: top right;
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+    pointer-events: none;
+  }
+  .tile-tooltip::before {
+    content: "";
+    position: absolute;
+    top: -5px;
+    right: 13px;
+    width: 9px;
+    height: 9px;
+    background: var(--bg);
+    border-left: 1px solid var(--border);
+    border-top: 1px solid var(--border);
+    transform: rotate(45deg);
+  }
+  /* Tiles near the left edge of the grid would otherwise grow their tooltip
+     off the left of the viewport -- the positionTooltips() script below
+     adds this class after measuring each card's position on load/resize. */
+  .tile-tooltip.flip-right {
+    right: auto;
+    left: 10px;
+    transform-origin: top left;
+  }
+  .tile-tooltip.flip-right::before { right: auto; left: 13px; }
+  .tile-info:hover ~ .tile-tooltip,
+  .tile-info:focus-visible ~ .tile-tooltip,
+  .tile-tooltip.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+  .tile-tooltip .tooltip-desc { color: var(--text); margin: 0; font-weight: 500; }
+  .tile-tooltip .tooltip-how { margin: 8px 0 0; padding-top: 8px; border-top: 1px solid var(--border); }
+  .tile-tooltip .tooltip-how strong { color: var(--accent); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 3px; }
   .stat-card.highlight { background: var(--success-light); border-color: rgba(25,158,112,0.35); }
   .stat-card.highlight .value { color: #5fe0bb; }
   .stat-card.severity-high { background: var(--danger-light); border-color: rgba(230,103,103,0.35); }
   .stat-card.severity-high .value { color: #f3a9a9; }
   .stat-card.severity-medium { background: var(--warning-light); border-color: rgba(250,178,25,0.35); }
   .stat-card.severity-medium .value { color: #f0c14f; }
-  .stats-caption { font-size: 12px; color: var(--muted); margin: -18px 0 28px; }
-
-  .module-nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 28px; }
-  .module-nav a {
-    text-decoration: none;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-size: 12px;
-    padding: 6px 12px;
-    border-radius: 999px;
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    transition: border-color 0.15s, color 0.15s;
-  }
-  .module-nav a:hover, .module-nav a:focus-visible { border-color: var(--accent); color: var(--accent); outline: none; }
-  .module-nav .nav-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .module-nav .nav-count { color: var(--muted); font-size: 11px; }
+  .stats-caption { font-size: 12px; color: var(--muted); margin: 14px 0 0; }
 
   section { margin-bottom: 32px; }
+  .at-a-glance-title { text-transform: uppercase; letter-spacing: 0.05em; }
   section > h2 {
     font-size: 18px;
     border-bottom: 2px solid var(--border);
@@ -142,24 +219,40 @@
      category carries its own accent color (border-left stripe + icon
      chip) so the two categories -- and, nested inside, each Notable
      Aspects subcategory -- read as visually distinct sections. */
+  .findings-grid {
+    display: grid;
+    /* Wide enough that 3 fit per row inside main's 1200px max-width, but
+       still reflows to fewer columns on a narrower viewport. */
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 8px;
+  }
   .findings-category {
     background: var(--panel);
     border: 1px solid var(--border);
     border-left: 4px solid var(--cat-color, var(--accent));
     border-radius: var(--radius);
-    margin-bottom: 10px;
     overflow: hidden;
+    align-self: start;
   }
+  .findings-category[open] { grid-column: 1 / -1; }
   .findings-category > summary {
     cursor: pointer;
-    padding: 12px 16px;
+    padding: 9px 14px;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
     list-style: none;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 9px;
+    transition: background 0.15s ease;
   }
+  .findings-category > summary span:not(.count-badge):not([aria-hidden]) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .findings-category > summary:hover,
+  .findings-category > summary:focus-visible { background: rgba(255,255,255,0.04); outline: none; }
   .findings-category > summary::-webkit-details-marker { display: none; }
   .findings-category > summary::before {
     content: "\25B8";
@@ -177,8 +270,8 @@
     border-radius: 999px;
     margin-left: auto;
   }
-  .findings-list { max-height: 380px; overflow-y: auto; border-top: 1px solid var(--border); }
-  .finding-item { padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 13px; overflow-wrap: anywhere; }
+  .findings-list { max-height: 340px; overflow-y: auto; border-top: 1px solid var(--border); }
+  .finding-item { padding: 8px 14px; border-bottom: 1px solid var(--border); font-size: 12.5px; overflow-wrap: anywhere; }
   .finding-item:last-child { border-bottom: none; }
   .finding-item .source { color: var(--muted); font-size: 11px; display: block; margin-top: 3px; overflow-wrap: anywhere; }
 
@@ -191,15 +284,18 @@
   .findings-subcategory:last-child { border-bottom: none; }
   .findings-subcategory > summary {
     cursor: pointer;
-    padding: 9px 16px 9px 31px;
+    padding: 7px 14px 7px 28px;
     font-weight: 600;
-    font-size: 12.5px;
+    font-size: 12px;
     list-style: none;
     display: flex;
     align-items: center;
     gap: 8px;
     background: var(--panel-2);
+    transition: background 0.15s ease;
   }
+  .findings-subcategory > summary:hover,
+  .findings-subcategory > summary:focus-visible { background: rgba(255,255,255,0.05); outline: none; }
   .findings-subcategory > summary::-webkit-details-marker { display: none; }
   .findings-subcategory > summary::before {
     content: "\25B8";
@@ -214,48 +310,63 @@
     color: var(--text);
     font-size: 10px;
   }
-  .findings-subcategory .findings-list { max-height: 300px; border-top: 1px solid var(--border); }
-  .findings-subcategory .finding-item { padding-left: 31px; }
+  .findings-subcategory .findings-list { max-height: 280px; border-top: 1px solid var(--border); }
+  .findings-subcategory .finding-item { padding-left: 28px; }
 
-  /* Modules: collapsed by default (native <details>, no JS needed),
-     each module gets its own accent color from the categorical palette
-     so the section list reads as distinct groups at a glance. */
+  /* Modules: collapsed by default (native <details>, no JS needed), laid
+     out in a compact multi-column grid so a repo with dozens of modules
+     doesn't force one long single-column scroll just to see the list --
+     an opened module spans the full row width so its class grid has room. */
+  .modules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 8px;
+  }
   .module-block {
-    margin-bottom: 12px;
     scroll-margin-top: 16px;
     background: var(--panel);
     border: 1px solid var(--border);
     border-left: 4px solid var(--module-color, var(--accent));
     border-radius: var(--radius);
     overflow: hidden;
+    align-self: start;
   }
+  .module-block[open] { grid-column: 1 / -1; }
   .module-block > summary {
     cursor: pointer;
     list-style: none;
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 14px 18px;
-    font-size: 15px;
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
     font-weight: 700;
+    transition: background 0.15s ease;
   }
+  .module-block > summary:hover,
+  .module-block > summary:focus-visible { background: rgba(255,255,255,0.04); outline: none; }
   .module-block > summary::-webkit-details-marker { display: none; }
   .module-block > summary::before {
     content: "\25B8";
     color: var(--muted);
-    font-size: 13px;
+    font-size: 12px;
     transition: transform 0.15s;
     display: inline-block;
+    flex-shrink: 0;
   }
   .module-block[open] > summary::before { transform: rotate(90deg); }
   .module-block > summary .module-name {
     color: var(--module-color, var(--accent));
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .module-block > summary .module-count {
     color: var(--muted);
     font-weight: 500;
-    font-size: 12px;
+    font-size: 11px;
     margin-left: auto;
+    flex-shrink: 0;
   }
   .module-body { padding: 4px 18px 18px; border-top: 1px solid var(--border); }
   .class-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 16px; margin-top: 14px; }
@@ -422,49 +533,63 @@
 
 <main>
 
-  <div class="stats-grid">
-    <div class="stat-card"><div class="value">{{ total_classes }}</div><div class="label">Classes Analyzed</div></div>
-    <div class="stat-card"><div class="value">{{ total_methods }}</div><div class="label">Methods</div></div>
-    <div class="stat-card"><div class="value">{{ total_endpoints }}</div><div class="label">REST Endpoints</div></div>
-    <div class="stat-card"><div class="value">{{ high_complexity_count }}</div><div class="label">High Complexity</div></div>
-    <div class="stat-card"><div class="value">{{ metadata.security_findings_total }}</div><div class="label">Security Findings</div></div>
-    <div class="stat-card severity-high"><div class="value">{{ metadata.security_findings_high }}</div><div class="label">High Severity</div></div>
-    <div class="stat-card severity-medium"><div class="value">{{ metadata.security_findings_medium }}</div><div class="label">Medium Severity</div></div>
-    <div class="stat-card"><div class="value">{{ metadata.security_findings_low }}</div><div class="label">Low Severity</div></div>
-    <div class="stat-card"><div class="value">{{ cache_hit_rate_pct }}%</div><div class="label">Cache Hit Rate</div></div>
-    <div class="stat-card"><div class="value">${{ "%.4f"|format(metadata.estimated_cost_usd) }}</div><div class="label">Estimated Cost</div></div>
-    <div class="stat-card"><div class="value">{{ metadata.total_lines_of_code|thousands }}</div><div class="label">Lines of Code</div></div>
-    <div class="stat-card"><div class="value">{{ metadata.estimated_total_tokens|thousands }}</div><div class="label">Est. Repo Tokens</div></div>
-    <div class="stat-card"><div class="value">{{ metadata.llm_input_characters|thousands }}</div><div class="label">Chars Sent to LLM</div></div>
-    <div class="stat-card"><div class="value">{{ metadata.estimated_llm_tokens|thousands }}</div><div class="label">Tokens Sent to LLM</div></div>
-    <div class="stat-card highlight"><div class="value">{{ metadata.token_savings_pct }}%</div><div class="label">Token Cost Saved</div></div>
-    <div class="stat-card"><div class="value">{{ metadata.estimated_manual_review_hours|thousands }}</div><div class="label">Est. Manual Review Hours</div></div>
-    <div class="stat-card"><div class="value">${{ metadata.estimated_manual_review_cost_usd|usd }}</div><div class="label">Est. Manual Review Cost</div></div>
-    <div class="stat-card highlight"><div class="value">${{ metadata.estimated_cost_savings_usd|usd }}</div><div class="label">Est. Cost Savings</div></div>
+  {% macro tile(value, label, desc, how='', css_class='') %}
+  <div class="stat-card {{ css_class }}">
+    <button type="button" class="tile-info" aria-label="About {{ label }}" aria-expanded="false" data-tile-info>&#9432;</button>
+    <div class="tile-tooltip" role="tooltip">
+      <p class="tooltip-desc">{{ desc }}</p>
+      {% if how %}<p class="tooltip-how"><strong>How this number is arrived at</strong>{{ how }}</p>{% endif %}
+    </div>
+    <div class="value">{{ value }}</div>
+    <div class="label">
+      {% if " (" in label %}
+        {% set main_label, suffix = label.split(" (", 1) %}
+        {{ main_label }} <span class="label-suffix">({{ suffix|lower }}</span>
+      {% else %}
+        {{ label }}
+      {% endif %}
+    </div>
   </div>
-  <p class="stats-caption">
-    Manual-review estimate assumes {{ metadata.review_loc_per_hour_assumed }} LOC/hour at
-    ${{ "%.0f"|format(metadata.reviewer_hourly_rate_usd_assumed) }}/hour
-    (<code>--review-loc-per-hour</code> / <code>--reviewer-hourly-rate</code>) --
-    a labeled estimate, not a measured figure.
-  </p>
-
-  {% if modules|length > 1 %}
-  <nav class="module-nav" aria-label="Jump to module">
-    {% for module_name, classes in modules.items() %}
-    <a href="#module-{{ loop.index }}">
-      <span class="nav-dot" style="background: {{ accent_colors[loop.index0 % accent_colors|length] }};" aria-hidden="true"></span>
-      {{ module_name }} <span class="nav-count">{{ classes|length }}</span>
-    </a>
-    {% endfor %}
-  </nav>
-  {% endif %}
+  {% endmacro %}
+  <section>
+    <h2 class="at-a-glance-title">At a Glance</h2>
+    <div class="stats-grid">
+    {{ tile(total_classes, "Classes Analyzed", "Total classes (including nested/static classes) this run extracted and described.") }}
+    {{ tile(total_methods, "Methods Analyzed", "Total methods found across all analyzed classes.") }}
+    {{ tile(total_endpoints, "REST Endpoints Discovered", "Total Spring REST endpoints detected across the codebase.") }}
+    {{ tile(high_complexity_count, "High-Complexity Methods", "Methods flagged as unusually complex by the heuristic complexity check.", "count of methods where the heuristic cyclomatic-complexity estimate exceeds the built-in threshold") }}
+    {{ tile(metadata.security_findings_total, "Security Findings", "Total deterministic security findings (hardcoded secrets, SQL concatenation, empty catches) across the codebase.") }}
+    {{ tile(metadata.security_findings_high, "High-Severity Findings", "Security Findings classified as high risk.", "Security Findings grouped by severity label", "severity-high") }}
+    {{ tile(metadata.security_findings_medium, "Medium-Severity Findings", "Security Findings classified as medium risk.", "Security Findings grouped by severity label", "severity-medium") }}
+    {{ tile(metadata.security_findings_low, "Low-Severity Findings", "Security Findings classified as low risk.", "Security Findings grouped by severity label") }}
+    {{ tile(cache_hit_rate_pct ~ "%", "Class Cache Hit Rate", "Share of classes whose description was reused from a prior run instead of freshly analyzed.", "classes served from cache / total classes analyzed × 100") }}
+    {{ tile("$" ~ ("%.4f"|format(metadata.estimated_cost_usd)), "Run Cost (Est.)", "Approximate dollar cost of this run's actual LLM usage.", "this run's real input/output tokens × the model's published per-token rate") }}
+    {{ tile(metadata.total_lines_of_code|thousands, "Lines of Code", "Total lines of code across every source and config file scanned.", "line count summed over all discovered .java and build/config files") }}
+    {{ tile(metadata.estimated_total_tokens|thousands, "Raw Repo Tokens (Full Codebase)", "How many tokens the entire raw repository would cost if sent to the LLM as-is.", "full text of every .java + config file, tokenized via the Anthropic count_tokens API") }}
+    {{ tile(metadata.estimated_llm_tokens|thousands, "Condensed Extraction Tokens (Full Codebase)", "How many tokens this tool's condensed, signatures-only extraction costs for the whole codebase.", "per-class extraction text (signatures, annotations, complexity) for every class, tokenized the same way, regardless of caching") }}
+    {{ tile(metadata.llm_input_characters|thousands, "Condensed Extraction Size (Chars)", "Character length of that same condensed extraction text.", "exact character count of the concatenated per-class extraction text") }}
+    {{ tile(metadata.token_savings_pct ~ "%", "Structural Token Savings", "How much smaller the condensed extraction is than the raw repository, in token terms.", "(1 − Condensed Extraction Tokens / Raw Repo Tokens) × 100 -- fixed by design, independent of caching", "highlight") }}
+    {{ tile(metadata.total_input_tokens|thousands, "Actual Input Tokens (This Run)", "Real input tokens this run actually sent to the LLM.", "summed across every LLM call this run made, after cache hits removed most classes from the workload") }}
+    {{ tile(metadata.total_output_tokens|thousands, "Actual Output Tokens (This Run)", "Real output tokens the LLM actually generated this run.", "summed across every LLM call this run made") }}
+    {{ tile(cache_adjusted_savings_pct ~ "%", "Cache-Adjusted Savings (This Run)", "How much less this specific run cost vs. sending the raw repository, including the effect of caching.", "(1 − (Actual Input + Actual Output Tokens) / Raw Repo Tokens) × 100 -- fluctuates with cache state", "highlight") }}
+    {{ tile(metadata.estimated_manual_review_hours|thousands, "Est. Manual Review Hours", "Approximate hours a human reviewer would need to read this codebase manually.", "Lines of Code / assumed reviewer throughput (--review-loc-per-hour, default 200)") }}
+    {{ tile("$" ~ (metadata.estimated_manual_review_cost_usd|usd), "Est. Manual Review Cost", "Approximate dollar cost of that manual review.", "Est. Manual Review Hours × assumed hourly rate (--reviewer-hourly-rate, default $75)") }}
+    {{ tile("$" ~ (metadata.estimated_cost_savings_usd|usd), "Est. Cost Savings", "Estimated dollars saved by using this tool instead of manual review.", "", "highlight") }}
+    </div>
+    <p class="stats-caption">
+      Manual-review estimate assumes {{ metadata.review_loc_per_hour_assumed }} LOC/hour at
+      ${{ "%.0f"|format(metadata.reviewer_hourly_rate_usd_assumed) }}/hour
+      (<code>--review-loc-per-hour</code> / <code>--reviewer-hourly-rate</code>) --
+      a labeled estimate, not a measured figure.
+    </p>
+  </section>
 
   {% if notable_findings %}
   <section>
     <h2>Notable Findings</h2>
+    <div class="findings-grid">
     {% for category in notable_findings %}
-    <details class="findings-category" style="--cat-color: {{ '#e66767' if category.label == 'High-Complexity Methods' else '#9085e9' }};"{% if loop.first %} open{% endif %}>
+    <details class="findings-category" style="--cat-color: {{ '#e66767' if category.label == 'High-Complexity Methods' else '#9085e9' }};">
       <summary>
         <span aria-hidden="true">{{ category.icon }}</span>
         <span>{{ category.label }}</span>
@@ -502,12 +627,14 @@
       {% endif %}
     </details>
     {% endfor %}
+    </div>
   </section>
   {% endif %}
 
   <section>
     <h2>Application Modules</h2>
     {% set ns = namespace(i=0) %}
+    <div class="modules-grid">
     {% for module_name, classes in modules.items() %}
     {% set module_color = accent_colors[loop.index0 % accent_colors|length] %}
     <details class="module-block" id="module-{{ loop.index }}" style="--module-color: {{ module_color }};">
@@ -632,6 +759,7 @@
       </div>
     </details>
     {% endfor %}
+    </div>
   </section>
 
   {% if metadata.parse_errors %}
@@ -695,6 +823,56 @@
     dialog.addEventListener("click", function (event) {
       if (event.target === dialog) { dialog.close(); }
     });
+  });
+
+  // Hover/keyboard-focus reveal is pure CSS (see .tile-info:hover ~ .tile-tooltip).
+  // This script handles: (1) which side each tooltip opens on, so tiles near
+  // the left edge of the grid don't grow their tooltip off-screen, and
+  // (2) tap-to-pin on touch devices.
+  var positionTooltips = function () {
+    document.querySelectorAll(".stat-card").forEach(function (card) {
+      var tip = card.querySelector(".tile-tooltip");
+      if (!tip) { return; }
+      var cardRect = card.getBoundingClientRect();
+      var tooltipWidth = tip.offsetWidth || 230;
+      var wouldOverflowLeft = cardRect.right - 10 - tooltipWidth < 8;
+      tip.classList.toggle("flip-right", wouldOverflowLeft);
+    });
+  };
+  positionTooltips();
+  var resizeTimer;
+  window.addEventListener("resize", function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(positionTooltips, 150);
+  });
+
+  var closeAllTooltips = function (except) {
+    document.querySelectorAll(".tile-tooltip.visible").forEach(function (tip) {
+      if (tip !== except) {
+        tip.classList.remove("visible");
+        var card = tip.closest(".stat-card");
+        if (card) { card.classList.remove("tooltip-pinned"); }
+      }
+    });
+    document.querySelectorAll(".tile-info[aria-expanded='true']").forEach(function (btn) {
+      if (btn.nextElementSibling !== except) { btn.setAttribute("aria-expanded", "false"); }
+    });
+  };
+  document.querySelectorAll("[data-tile-info]").forEach(function (btn) {
+    var tip = btn.nextElementSibling;
+    var card = btn.closest(".stat-card");
+    btn.addEventListener("click", function (event) {
+      event.stopPropagation();
+      var willOpen = !tip.classList.contains("visible");
+      closeAllTooltips(willOpen ? tip : null);
+      tip.classList.toggle("visible", willOpen);
+      if (card) { card.classList.toggle("tooltip-pinned", willOpen); }
+      btn.setAttribute("aria-expanded", String(willOpen));
+    });
+  });
+  document.addEventListener("click", function () { closeAllTooltips(null); });
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") { closeAllTooltips(null); }
   });
 })();
 </script>

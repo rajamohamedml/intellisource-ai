@@ -304,12 +304,16 @@ class RunMetadata(BaseModel):
     # config files), independent of caching and of what this particular run
     # actually spent -- contrast with total_input_tokens/total_output_tokens
     # above, which are this run's actual, cache-aware LLM usage.
+    # estimated_total_tokens is a LOCAL chars-per-token approximation (raw
+    # source is never sent to an external tokenizer), not a live-tokenizer
+    # count; estimated_llm_tokens is a live count of the condensed text only.
     estimated_total_tokens: int = 0
     llm_input_characters: int = 0
     estimated_llm_tokens: int = 0
     # Headline demo figure: percentage reduction from estimated_total_tokens
-    # (raw repo) to estimated_llm_tokens (condensed extraction) -- how much
-    # token cost this tool's structure-not-source approach saves.
+    # (raw repo, approximate) to estimated_llm_tokens (condensed extraction)
+    # -- how much token cost this tool's structure-not-source approach saves.
+    # Approximate, since its baseline is a heuristic.
     token_savings_pct: float = 0.0
     # Severity breakdown of security_findings_total, surfaced as its own
     # top-level tiles rather than requiring a reader to open Notable

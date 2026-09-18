@@ -18,7 +18,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
-SCHEMA_VERSION = "1.3"
+SCHEMA_VERSION = "1.4"
 
 
 class ClassType(StrEnum):
@@ -245,6 +245,17 @@ class ProjectOverview(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+class AnalysisStatus(StrEnum):
+    """Whether the LLM actually produced a description for a class. Lets a
+    reader tell a class whose analysis failed (its batch errored, or the LLM
+    omitted it from the response) apart from one that was described, however
+    tersely -- both would otherwise look alike in the final report.
+    """
+
+    DESCRIBED = "described"
+    FAILED = "failed"
+
+
 class MethodAnalysis(BaseModel):
     """One method in the final report: structure + complexity + LLM description."""
 
@@ -263,6 +274,7 @@ class ClassAnalysis(BaseModel):
     class_name: str
     class_type: ClassType
     description: str
+    analysis_status: AnalysisStatus = AnalysisStatus.DESCRIBED
     rest_endpoints: list[RestEndpoint] = Field(default_factory=list)
     methods: list[MethodAnalysis] = Field(default_factory=list)
     notable_aspects: list[str] = Field(default_factory=list)
@@ -319,6 +331,9 @@ class RunMetadata(BaseModel):
     estimated_manual_review_hours: float = 0.0
     estimated_manual_review_cost_usd: float = 0.0
     estimated_cost_savings_usd: float = 0.0
+    # Classes carrying the "Description unavailable." placeholder because
+    # their LLM batch failed or the LLM omitted them (AnalysisStatus.FAILED).
+    classes_with_failed_analysis: int = 0
 
 
 class ProjectAnalysis(BaseModel):

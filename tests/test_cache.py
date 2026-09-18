@@ -41,7 +41,7 @@ def test_different_content_produces_different_keys() -> None:
     assert compute_cache_key("class A", model) != compute_cache_key("class B", model)
 
 
-def test_different_model_produces_different_keys_for_same_content() -> None:
+def test_different_model_produces_different_keys_for_same_content(tmp_path: Path) -> None:
     """Regression test for issue #7: switching --model must invalidate the
     cache for otherwise-unchanged class text, not silently reuse a
     description produced by a different model.
@@ -51,7 +51,7 @@ def test_different_model_produces_different_keys_for_same_content() -> None:
 
     assert key_a != key_b
 
-    cache = LLMCache(Path("unused-does-not-exist.json"), load_existing=False)
+    cache = LLMCache(tmp_path / "llm_cache.json", load_existing=False)
     cache.set(key_a, _sample_description())
 
     assert cache.get(key_a) is not None

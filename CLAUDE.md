@@ -67,7 +67,7 @@ All cross-module contracts are Pydantic models in `schemas.py` — never raw dic
 
 **Batching**: Classes are grouped by source directory first, then capped by `--batch-size` (default 6) and a real token ceiling (default 4,000 input tokens). Token counts come from the Anthropic SDK's `count_tokens` endpoint — never a character-count heuristic or tiktoken.
 
-**Caching**: `cache.py` keys on `SHA-256(PROMPT_VERSION + rendered_class_text)`. A class whose source is unchanged costs zero tokens on re-runs. Bump `PROMPT_VERSION` in `cache.py` when the extraction prompt changes meaningfully.
+**Caching**: `cache.py` keys on `SHA-256(PROMPT_VERSION + model + rendered_class_text)`. A class whose source is unchanged costs zero tokens on re-runs. Bump `PROMPT_VERSION` in `cache.py` when the extraction prompt changes meaningfully; switching `--model` invalidates cached entries the same way, since the model ID is part of the key.
 
 **Output**: `pipeline.py` writes `output/analysis.json`, `output/analysis.schema.json`, and `output/report.html` — all derived from the single `ProjectAnalysis` Pydantic model, so JSON and HTML can never disagree.
 

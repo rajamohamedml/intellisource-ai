@@ -5,9 +5,10 @@ request (system prompt, schema description) across all of them. A hard
 token ceiling — verified against the real Anthropic tokenizer via
 `client.messages.count_tokens`, never a character-count guess or
 `tiktoken` (the wrong tokenizer for Claude) — keeps every call bounded and
-cheap. The ceiling bounds each batch's condensed class text, verified by
-re-counting the assembled text; it does not include the fixed system-prompt
-and structured-output schema overhead added at dispatch time.
+cheap. The ceiling bounds each request's input: the fixed system prompt is
+counted once and reserved from it, and each batch's assembled class text is
+re-counted to verify it fits the remainder. The structured-output
+schema/tool-definition overhead added at dispatch time is not yet counted.
 """
 
 from __future__ import annotations
@@ -225,6 +226,7 @@ def build_batches(
     model: str,
     batch_size: int,
     token_ceiling: int,
+    system_prompt: str = "",
 ) -> list[ClassBatch]:
     """Group `classes` into token-bounded batches for LLM analysis.
 
@@ -241,10 +243,27 @@ def build_batches(
             LangChain `ChatAnthropic` chains used for the actual analysis.
         model: Model ID to count tokens against (tokenization is model-specific).
         batch_size: Maximum classes per batch.
-        token_ceiling: Maximum input tokens for each batch's assembled class
-            text, enforced via real token counts (excluding the fixed
-            system-prompt/schema overhead added at dispatch time).
+        token_ceiling: Maximum input tokens per request, enforced via real
+            token counts. `system_prompt`'s tokens are reserved from it, so
+            each batch's class text gets the remainder. Structured-output
+            schema/tool-definition overhead is not yet counted.
+        system_prompt: The constant system prompt sent with every batch. It is
+            counted once (as a user message, which slightly over-reserves by
+            the fixed message framing -- the safe direction).
+
+    Raises:
+        LLMExtractionError: if token counting fails, or if `system_prompt`
+            alone consumes the whole ceiling.
     """
+    effective_ceiling = token_ceiling
+    if system_prompt:
+        effective_ceiling -= _count_tokens(anthropic_client, model, system_prompt)
+        if effective_ceiling < 1:
+            raise LLMExtractionError(
+                f"The system prompt alone uses {token_ceiling - effective_ceiling} tokens, leaving no room "
+                f"under the {token_ceiling}-token ceiling; raise the token ceiling."
+            )
+
     by_directory: dict[str, list[ParsedClass]] = {}
     for cls in classes:
         directory = "/".join(cls.file_path.split("/")[:-1])
@@ -254,7 +273,12 @@ def build_batches(
     for directory in sorted(by_directory):
         batches.extend(
             _batch_group(
-                by_directory[directory], complexity_index, anthropic_client, model, batch_size, token_ceiling
+                by_directory[directory],
+                complexity_index,
+                anthropic_client,
+                model,
+                batch_size,
+                effective_ceiling,
             )
         )
 

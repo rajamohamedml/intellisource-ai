@@ -1,0 +1,14 @@
+id: bugfix-11
+title: java-parser-py-has-a-backwards
+protocol: bugfix
+phase: investigate
+plan_phases: []
+current_plan_phase: null
+gates:
+  pr:
+    status: pending
+iteration: 1
+build_complete: false
+history: []
+started_at: '2026-09-18T18:44:56.122Z'
+updated_at: '2026-09-18T18:44:56.123Z'

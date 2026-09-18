@@ -413,6 +413,7 @@
   .type-badge.assembler { background: rgba(201,133,0,0.22); color: #f0c14f; }
   .type-badge.config { background: rgba(255,255,255,0.08); color: var(--text-secondary); }
   .type-badge.exception { background: rgba(230,103,103,0.20); color: #f3a9a9; }
+  .type-badge.analysis-failed { background: var(--danger-light); color: #f3a9a9; }
   .type-badge.other { background: rgba(255,255,255,0.06); color: var(--muted); }
 
   .file-path { font-size: 11px; color: var(--muted); font-family: monospace; margin-bottom: 8px; overflow-wrap: anywhere; word-break: break-word; }
@@ -558,6 +559,7 @@
     {{ tile(total_methods, "Methods Analyzed", "Total methods found across all analyzed classes.") }}
     {{ tile(total_endpoints, "REST Endpoints Discovered", "Total Spring REST endpoints detected across the codebase.") }}
     {{ tile(high_complexity_count, "High-Complexity Methods", "Methods flagged as unusually complex by the heuristic complexity check.", "count of methods where the heuristic cyclomatic-complexity estimate exceeds the built-in threshold") }}
+    {{ tile(metadata.classes_with_failed_analysis, "Classes With Failed Analysis", "Classes whose LLM analysis failed (batch error or omitted from the response) and so show a placeholder description instead of a real one.", "count of classes marked analysis failed -- 0 means every class was described", "severity-high" if metadata.classes_with_failed_analysis else "") }}
     {{ tile(metadata.security_findings_total, "Security Findings", "Total deterministic security findings (hardcoded secrets, SQL concatenation, empty catches) across the codebase.") }}
     {{ tile(metadata.security_findings_high, "High-Severity Findings", "Security Findings classified as high risk.", "Security Findings grouped by severity label", "severity-high") }}
     {{ tile(metadata.security_findings_medium, "Medium-Severity Findings", "Security Findings classified as medium risk.", "Security Findings grouped by severity label", "severity-medium") }}
@@ -656,6 +658,9 @@
             {% if cls.security_findings %}
             <span class="type-badge security-badge">🛡️ {{ cls.security_findings|length }}</span>
             {% endif %}
+            {% if cls.analysis_status.value == "failed" %}
+            <span class="type-badge analysis-failed" title="The LLM produced no description for this class; the text below is a placeholder.">analysis failed</span>
+            {% endif %}
           </div>
           <div class="file-path">{{ cls.file_path }}</div>
           <div class="class-description clamp">{{ cls.description }}</div>
@@ -686,6 +691,9 @@
               <div class="class-card-header">
                 <span class="class-name">{{ cls.class_name }}</span>
                 <span class="type-badge {{ cls.class_type.value }}">{{ cls.class_type.value }}</span>
+                {% if cls.analysis_status.value == "failed" %}
+                <span class="type-badge analysis-failed">analysis failed</span>
+                {% endif %}
               </div>
               <div class="file-path">{{ cls.file_path }}</div>
               <div class="file-path package-path">package {{ cls.package }}</div>

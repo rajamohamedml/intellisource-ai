@@ -28,6 +28,7 @@ from intellisource_ai.llm_client import LLMClient, UsageTracker
 from intellisource_ai.repo_fetcher import fetch_repository
 from intellisource_ai.report_generator import write_report
 from intellisource_ai.schemas import (
+    AnalysisStatus,
     ChurnMetrics,
     ClassAnalysis,
     ClassDescription,
@@ -159,6 +160,7 @@ def run_pipeline(settings: Settings) -> ProjectAnalysis:
         estimated_manual_review_hours=manual_hours,
         estimated_manual_review_cost_usd=manual_cost_usd,
         estimated_cost_savings_usd=cost_savings_usd,
+        classes_with_failed_analysis=_count_failed_analyses(analyzed_classes),
     )
 
     analysis = ProjectAnalysis(
@@ -322,7 +324,9 @@ def _assemble_classes(
     descriptions, and the three deterministic signals (security findings,
     the dependency graph, git churn) into the final `ClassAnalysis` list.
     A class or method the LLM never described (e.g. its batch failed) gets
-    an explicit placeholder rather than being silently dropped.
+    an explicit placeholder rather than being silently dropped; a class
+    with no description at all is also marked `AnalysisStatus.FAILED` so
+    the placeholder can't be mistaken for a real (if terse) description.
     """
     assembled: list[ClassAnalysis] = []
     for cls in classes:
@@ -349,6 +353,7 @@ def _assemble_classes(
                 class_name=cls.class_name,
                 class_type=cls.class_type,
                 description=description.description if description else "Description unavailable.",
+                analysis_status=AnalysisStatus.DESCRIBED if description else AnalysisStatus.FAILED,
                 rest_endpoints=cls.rest_endpoints,
                 methods=methods,
                 notable_aspects=description.notable_aspects if description else [],
@@ -385,6 +390,14 @@ def _count_security_findings_by_severity(classes: list[ClassAnalysis]) -> dict[S
         for finding in cls.security_findings:
             counts[finding.severity] += 1
     return counts
+
+
+def _count_failed_analyses(classes: list[ClassAnalysis]) -> int:
+    """Number of classes that fell back to the placeholder description
+    (see `_assemble_classes`), surfaced in `RunMetadata` so a failed
+    analysis is distinguishable from a legitimately terse one.
+    """
+    return sum(1 for cls in classes if cls.analysis_status is AnalysisStatus.FAILED)
 
 
 def _estimate_manual_review_roi(
@@ -592,7 +605,7 @@ def _log_summary(analysis: ProjectAnalysis) -> None:
     logger.info(
         "Done: %d file(s) parsed (%d parse error(s)), %d class(es) analyzed, "
         "%d LLM call(s) made / %d served from cache, %d input + %d output tokens, "
-        "~$%.4f estimated cost",
+        "~$%.4f estimated cost, %d class(es) with failed analysis",
         m.total_files_parsed,
         len(m.parse_errors),
         len(analysis.classes),
@@ -601,4 +614,5 @@ def _log_summary(analysis: ProjectAnalysis) -> None:
         m.total_input_tokens,
         m.total_output_tokens,
         m.estimated_cost_usd,
+        m.classes_with_failed_analysis,
     )

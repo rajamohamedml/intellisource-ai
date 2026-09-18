@@ -48,6 +48,7 @@ The pipeline is a strict linear sequence with no backwards edges. Each stage has
 ```
 repo_fetcher.py     → shallow git clone of target repo (skipped entirely if --local-path is given)
 java_parser.py      → AST parse of all .java files → ParsedClass / ParsedMethod (+ imports, class line bounds)
+java_lexing.py      → shared string/comment masking helper (leaf module; used by java_parser and complexity, not a stage)
 complexity.py       → heuristic LOC + cyclomatic per method → ComplexityMetrics
 security_scanner.py → regex-based hardcoded-secret / SQL-concat / empty-catch checks → SecurityFinding
 dependency_graph.py → import-based internal class-to-class edges → DependencyEdge

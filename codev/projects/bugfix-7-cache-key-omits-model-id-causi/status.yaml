@@ -1,0 +1,14 @@
+id: bugfix-7
+title: cache-key-omits-model-id-causi
+protocol: bugfix
+phase: investigate
+plan_phases: []
+current_plan_phase: null
+gates:
+  pr:
+    status: pending
+iteration: 1
+build_complete: false
+history: []
+started_at: '2026-09-18T00:20:24.168Z'
+updated_at: '2026-09-18T00:20:24.169Z'

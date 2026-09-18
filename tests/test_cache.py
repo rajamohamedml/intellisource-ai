@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from intellisource_ai.cache import LLMCache, compute_cache_key
@@ -77,3 +78,54 @@ def test_corrupt_cache_file_degrades_to_empty_cache(tmp_path: Path) -> None:
     cache = LLMCache(cache_path)
 
     assert cache.get(compute_cache_key("anything", "claude-sonnet-4-6")) is None
+
+
+def test_malformed_entry_degrades_to_miss_instead_of_crashing(tmp_path: Path) -> None:
+    cache_path = tmp_path / "llm_cache.json"
+    key = compute_cache_key("rendered class text", "claude-sonnet-4-6")
+    cache_path.write_text(
+        json.dumps({key: {"not_a_valid_field": "missing class_name/description"}}),
+        encoding="utf-8",
+    )
+
+    cache = LLMCache(cache_path)
+    result = cache.get(key)
+
+    assert result is None
+    assert cache.misses == 1
+    assert cache.hits == 0
+
+
+def test_malformed_entry_is_evicted_so_it_does_not_recur_on_save(tmp_path: Path) -> None:
+    cache_path = tmp_path / "llm_cache.json"
+    key = compute_cache_key("rendered class text", "claude-sonnet-4-6")
+    cache_path.write_text(
+        json.dumps({key: {"not_a_valid_field": "missing class_name/description"}}),
+        encoding="utf-8",
+    )
+
+    cache = LLMCache(cache_path)
+    cache.get(key)
+    cache.save()
+
+    persisted = json.loads(cache_path.read_text(encoding="utf-8"))
+    assert key not in persisted
+
+
+def test_null_entry_degrades_to_miss_and_is_evicted(tmp_path: Path) -> None:
+    """A JSON `null` value for a key (distinct from the key being absent)
+    must still be treated as a malformed entry and evicted, not silently
+    kept around as a permanent miss.
+    """
+    cache_path = tmp_path / "llm_cache.json"
+    key = compute_cache_key("rendered class text", "claude-sonnet-4-6")
+    cache_path.write_text(json.dumps({key: None}), encoding="utf-8")
+
+    cache = LLMCache(cache_path)
+    result = cache.get(key)
+    cache.save()
+
+    assert result is None
+    assert cache.misses == 1
+    persisted = json.loads(cache_path.read_text(encoding="utf-8"))
+    assert key not in persisted

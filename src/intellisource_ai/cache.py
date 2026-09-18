@@ -23,6 +23,8 @@ import logging
 from pathlib import Path
 from typing import Any
 
+from pydantic import ValidationError
+
 from intellisource_ai.schemas import ClassDescription
 
 logger = logging.getLogger(__name__)
@@ -74,14 +76,23 @@ class LLMCache:
 
     def get(self, key: str) -> ClassDescription | None:
         """Look up a cached result. Returns None (and records a miss) if
-        absent — callers fall back to an LLM call in that case.
+        absent or malformed — callers fall back to an LLM call in that case.
+        A malformed entry (e.g. schema mismatch after a prompt change
+        without a `PROMPT_VERSION` bump, or a hand-edited value) is evicted
+        so it doesn't recur on `save()`.
         """
-        raw = self._entries.get(key)
-        if raw is None:
+        if key not in self._entries:
+            self._misses += 1
+            return None
+        try:
+            result = ClassDescription.model_validate(self._entries[key])
+        except ValidationError as exc:
+            logger.warning("Ignoring malformed cache entry for key %s: %s", key, exc)
+            del self._entries[key]
             self._misses += 1
             return None
         self._hits += 1
-        return ClassDescription.model_validate(raw)
+        return result
 
     def set(self, key: str, value: ClassDescription) -> None:
         """Record a freshly-computed LLM result for later reuse."""

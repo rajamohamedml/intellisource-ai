@@ -413,6 +413,7 @@
   .type-badge.assembler { background: rgba(201,133,0,0.22); color: #f0c14f; }
   .type-badge.config { background: rgba(255,255,255,0.08); color: var(--text-secondary); }
   .type-badge.exception { background: rgba(230,103,103,0.20); color: #f3a9a9; }
+  .type-badge.analysis-failed { background: var(--danger-light); color: #f3a9a9; }
   .type-badge.other { background: rgba(255,255,255,0.06); color: var(--muted); }
 
   .file-path { font-size: 11px; color: var(--muted); font-family: monospace; margin-bottom: 8px; overflow-wrap: anywhere; word-break: break-word; }
@@ -554,10 +555,11 @@
   <section>
     <h2 class="at-a-glance-title">At a Glance</h2>
     <div class="stats-grid">
-    {{ tile(total_classes, "Classes Analyzed", "Total classes (including nested/static classes) this run extracted and described.") }}
+    {{ tile(total_classes, "Classes Analyzed", "Total classes (including nested/static classes) this run extracted and analyzed; see Classes With Failed Analysis for any the LLM did not describe.") }}
     {{ tile(total_methods, "Methods Analyzed", "Total methods found across all analyzed classes.") }}
     {{ tile(total_endpoints, "REST Endpoints Discovered", "Total Spring REST endpoints detected across the codebase.") }}
     {{ tile(high_complexity_count, "High-Complexity Methods", "Methods flagged as unusually complex by the heuristic complexity check.", "count of methods where the heuristic cyclomatic-complexity estimate exceeds the built-in threshold") }}
+    {{ tile(metadata.classes_with_failed_analysis, "Classes With Failed Analysis", "Classes whose LLM analysis failed (batch error or omitted from the response) and so show a placeholder description instead of a real one.", "count of classes marked analysis failed -- 0 means every class was described", "severity-high" if metadata.classes_with_failed_analysis else "") }}
     {{ tile(metadata.security_findings_total, "Security Findings", "Total deterministic security findings (hardcoded secrets, SQL concatenation, empty catches) across the codebase.") }}
     {{ tile(metadata.security_findings_high, "High-Severity Findings", "Security Findings classified as high risk.", "Security Findings grouped by severity label", "severity-high") }}
     {{ tile(metadata.security_findings_medium, "Medium-Severity Findings", "Security Findings classified as medium risk.", "Security Findings grouped by severity label", "severity-medium") }}
@@ -565,13 +567,13 @@
     {{ tile(cache_hit_rate_pct ~ "%", "Class Cache Hit Rate", "Share of classes whose description was reused from a prior run instead of freshly analyzed.", "classes served from cache / total classes analyzed × 100") }}
     {{ tile("$" ~ ("%.4f"|format(metadata.estimated_cost_usd)), "Run Cost (Est.)", "Approximate dollar cost of this run's actual LLM usage.", "this run's real input/output tokens × the model's published per-token rate") }}
     {{ tile(metadata.total_lines_of_code|thousands, "Lines of Code", "Total lines of code across every source and config file scanned.", "line count summed over all discovered .java and build/config files") }}
-    {{ tile(metadata.estimated_total_tokens|thousands, "Raw Repo Tokens (Full Codebase)", "How many tokens the entire raw repository would cost if sent to the LLM as-is.", "full text of every .java + config file, tokenized via the Anthropic count_tokens API") }}
+    {{ tile(metadata.estimated_total_tokens|thousands, "Raw Repo Tokens (Est.)", "Approximate tokens the entire raw repository would cost if sent to the LLM as-is.", "local estimate: total characters of every .java + config file ÷ 3.5 chars/token -- raw source is never sent to any external API for this figure") }}
     {{ tile(metadata.estimated_llm_tokens|thousands, "Condensed Extraction Tokens (Full Codebase)", "How many tokens this tool's condensed, signatures-only extraction costs for the whole codebase.", "per-class extraction text (signatures, annotations, complexity) for every class, tokenized the same way, regardless of caching") }}
     {{ tile(metadata.llm_input_characters|thousands, "Condensed Extraction Size (Chars)", "Character length of that same condensed extraction text.", "exact character count of the concatenated per-class extraction text") }}
-    {{ tile(metadata.token_savings_pct ~ "%", "Structural Token Savings", "How much smaller the condensed extraction is than the raw repository, in token terms.", "(1 − Condensed Extraction Tokens / Raw Repo Tokens) × 100 -- fixed by design, independent of caching", "highlight") }}
+    {{ tile(metadata.token_savings_pct ~ "%", "Structural Token Savings", "How much smaller the condensed extraction is than the raw repository, in token terms.", "(1 − Condensed Extraction Tokens / Est. Raw Repo Tokens) × 100 -- approximate (raw baseline is a heuristic), independent of caching", "highlight") }}
     {{ tile(metadata.total_input_tokens|thousands, "Actual Input Tokens (This Run)", "Real input tokens this run actually sent to the LLM.", "summed across every LLM call this run made, after cache hits removed most classes from the workload") }}
     {{ tile(metadata.total_output_tokens|thousands, "Actual Output Tokens (This Run)", "Real output tokens the LLM actually generated this run.", "summed across every LLM call this run made") }}
-    {{ tile(cache_adjusted_savings_pct ~ "%", "Cache-Adjusted Savings (This Run)", "How much less this specific run cost vs. sending the raw repository, including the effect of caching.", "(1 − (Actual Input + Actual Output Tokens) / Raw Repo Tokens) × 100 -- fluctuates with cache state", "highlight") }}
+    {{ tile(cache_adjusted_savings_pct ~ "%", "Cache-Adjusted Savings (This Run)", "How much less this specific run cost vs. sending the raw repository, including the effect of caching.", "(1 − (Actual Input + Actual Output Tokens) / Est. Raw Repo Tokens) × 100 -- approximate, fluctuates with cache state", "highlight") }}
     {{ tile(metadata.estimated_manual_review_hours|thousands, "Est. Manual Review Hours", "Approximate hours a human reviewer would need to read this codebase manually.", "Lines of Code / assumed reviewer throughput (--review-loc-per-hour, default 200)") }}
     {{ tile("$" ~ (metadata.estimated_manual_review_cost_usd|usd), "Est. Manual Review Cost", "Approximate dollar cost of that manual review.", "Est. Manual Review Hours × assumed hourly rate (--reviewer-hourly-rate, default $75)") }}
     {{ tile("$" ~ (metadata.estimated_cost_savings_usd|usd), "Est. Cost Savings", "Estimated dollars saved by using this tool instead of manual review.", "", "highlight") }}
@@ -656,6 +658,9 @@
             {% if cls.security_findings %}
             <span class="type-badge security-badge">🛡️ {{ cls.security_findings|length }}</span>
             {% endif %}
+            {% if cls.analysis_status.value == "failed" %}
+            <span class="type-badge analysis-failed" title="The LLM produced no description for this class; the text below is a placeholder.">analysis failed</span>
+            {% endif %}
           </div>
           <div class="file-path">{{ cls.file_path }}</div>
           <div class="class-description clamp">{{ cls.description }}</div>
@@ -686,6 +691,9 @@
               <div class="class-card-header">
                 <span class="class-name">{{ cls.class_name }}</span>
                 <span class="type-badge {{ cls.class_type.value }}">{{ cls.class_type.value }}</span>
+                {% if cls.analysis_status.value == "failed" %}
+                <span class="type-badge analysis-failed">analysis failed</span>
+                {% endif %}
               </div>
               <div class="file-path">{{ cls.file_path }}</div>
               <div class="file-path package-path">package {{ cls.package }}</div>

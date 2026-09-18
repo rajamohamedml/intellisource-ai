@@ -24,10 +24,17 @@ from intellisource_ai.config import Settings
 from intellisource_ai.dependency_graph import build_dependency_graph, depends_on_by_class
 from intellisource_ai.exceptions import LLMExtractionError
 from intellisource_ai.java_parser import discover_java_files, parse_source_tree
-from intellisource_ai.llm_client import LLMClient, UsageTracker
+from intellisource_ai.llm_client import (
+    BATCH_SYSTEM_PROMPT,
+    BATCH_TOOL_CHOICE,
+    BATCH_TOOL_DEFINITION,
+    LLMClient,
+    UsageTracker,
+)
 from intellisource_ai.repo_fetcher import fetch_repository
 from intellisource_ai.report_generator import write_report
 from intellisource_ai.schemas import (
+    AnalysisStatus,
     ChurnMetrics,
     ClassAnalysis,
     ClassDescription,
@@ -55,11 +62,16 @@ _HOTSPOT_COUNT = 8
 _CONFIG_FILE_GLOBS = ("application*.properties", "application*.yml", "application*.yaml")
 _EXCLUDED_CONFIG_DIR_NAMES = {"build", "target", ".git", "node_modules"}
 
-# Per-call char budget for estimating whole-repo token counts (see
-# _estimate_repo_tokens): comfortably under any model's context window even
-# at a pessimistic ~2 chars/token, so a large repository costs a handful of
+# Per-call char budget for the condensed-text token count (see
+# _count_tokens_for_text): comfortably under any model's context window even
+# at a pessimistic ~2 chars/token, so a large codebase costs a handful of
 # count_tokens calls rather than one per file.
-_RAW_TOKEN_COUNT_CHUNK_CHARS = 500_000
+_TOKEN_COUNT_CHUNK_CHARS = 500_000
+
+# Documented approximation for source code (typical range ~3-4 chars/token
+# across tokenizers). Used only by _estimate_repo_tokens, which deliberately
+# stays local so raw repository source is never sent to any external API.
+_ESTIMATED_CHARS_PER_TOKEN = 3.5
 
 ClassKey = tuple[str, str]  # (file_path, class_name)
 
@@ -120,7 +132,7 @@ def run_pipeline(settings: Settings) -> ProjectAnalysis:
     )
     config_files = _discover_config_files(repo_root)
     total_lines_of_code = _compute_total_loc(java_files, config_files)
-    estimated_total_tokens = _estimate_repo_tokens(java_files, config_files, anthropic_client, settings.model)
+    estimated_total_tokens = _estimate_repo_tokens(java_files, config_files)
     llm_input_characters = _compute_llm_input_characters(parse_result.classes, complexity_index)
     estimated_llm_tokens = _estimate_llm_tokens(
         parse_result.classes, complexity_index, anthropic_client, settings.model
@@ -159,6 +171,7 @@ def run_pipeline(settings: Settings) -> ProjectAnalysis:
         estimated_manual_review_hours=manual_hours,
         estimated_manual_review_cost_usd=manual_cost_usd,
         estimated_cost_savings_usd=cost_savings_usd,
+        classes_with_failed_analysis=_count_failed_analyses(analyzed_classes),
     )
 
     analysis = ProjectAnalysis(
@@ -228,7 +241,7 @@ def _analyze_classes(
 
     for cls in classes:
         key_tuple: ClassKey = (cls.file_path, cls.class_name)
-        cache_key = compute_cache_key(render_class_for_prompt(cls, complexity_index))
+        cache_key = compute_cache_key(render_class_for_prompt(cls, complexity_index), settings.model)
         cache_keys[key_tuple] = cache_key
         cached = cache.get(cache_key)
         if cached is not None:
@@ -249,6 +262,9 @@ def _analyze_classes(
             model=settings.model,
             batch_size=settings.batch_size,
             token_ceiling=settings.token_ceiling_per_batch,
+            system_prompt=BATCH_SYSTEM_PROMPT,
+            tools=[BATCH_TOOL_DEFINITION],
+            tool_choice=BATCH_TOOL_CHOICE,
         )
         for batch in batches:
             _process_batch(batch, llm_client, fragments)
@@ -322,7 +338,9 @@ def _assemble_classes(
     descriptions, and the three deterministic signals (security findings,
     the dependency graph, git churn) into the final `ClassAnalysis` list.
     A class or method the LLM never described (e.g. its batch failed) gets
-    an explicit placeholder rather than being silently dropped.
+    an explicit placeholder rather than being silently dropped; a class
+    with no description at all is also marked `AnalysisStatus.FAILED` so
+    the placeholder can't be mistaken for a real (if terse) description.
     """
     assembled: list[ClassAnalysis] = []
     for cls in classes:
@@ -349,6 +367,7 @@ def _assemble_classes(
                 class_name=cls.class_name,
                 class_type=cls.class_type,
                 description=description.description if description else "Description unavailable.",
+                analysis_status=AnalysisStatus.DESCRIBED if description else AnalysisStatus.FAILED,
                 rest_endpoints=cls.rest_endpoints,
                 methods=methods,
                 notable_aspects=description.notable_aspects if description else [],
@@ -385,6 +404,14 @@ def _count_security_findings_by_severity(classes: list[ClassAnalysis]) -> dict[S
         for finding in cls.security_findings:
             counts[finding.severity] += 1
     return counts
+
+
+def _count_failed_analyses(classes: list[ClassAnalysis]) -> int:
+    """Number of classes that fell back to the placeholder description
+    (see `_assemble_classes`), surfaced in `RunMetadata` so a failed
+    analysis is distinguishable from a legitimately terse one.
+    """
+    return sum(1 for cls in classes if cls.analysis_status is AnalysisStatus.FAILED)
 
 
 def _estimate_manual_review_roi(
@@ -434,15 +461,15 @@ def _compute_total_loc(java_files: list[Path], config_files: list[Path]) -> int:
 def _count_tokens_for_text(text: str, anthropic_client: Anthropic, model: str) -> int:
     """Token count for `text` via the real Anthropic tokenizer -- never a
     character-count heuristic. `text` is chunked to a safe per-call size
-    (`_RAW_TOKEN_COUNT_CHUNK_CHARS`) rather than counted all at once, so an
+    (`_TOKEN_COUNT_CHUNK_CHARS`) rather than counted all at once, so an
     entire repository's worth of text costs a handful of `count_tokens`
     calls rather than risking one oversized call.
     """
     if not text:
         return 0
     total_tokens = 0
-    for offset in range(0, len(text), _RAW_TOKEN_COUNT_CHUNK_CHARS):
-        chunk = text[offset : offset + _RAW_TOKEN_COUNT_CHUNK_CHARS]
+    for offset in range(0, len(text), _TOKEN_COUNT_CHUNK_CHARS):
+        chunk = text[offset : offset + _TOKEN_COUNT_CHUNK_CHARS]
         try:
             response = anthropic_client.messages.count_tokens(
                 model=model, messages=[{"role": "user", "content": chunk}]
@@ -453,28 +480,19 @@ def _count_tokens_for_text(text: str, anthropic_client: Anthropic, model: str) -
     return total_tokens
 
 
-def _estimate_repo_tokens(
-    java_files: list[Path], config_files: list[Path], anthropic_client: Anthropic, model: str
-) -> int:
-    """Token count of the entire raw repository (every `.java` class file
-    plus recognized config files) via the real Anthropic tokenizer --
-    showing what tokenizing the codebase as-is would cost, in contrast to
-    the condensed text this tool actually sends the LLM (see
-    `_estimate_llm_tokens`).
-
-    This is an optional report-enrichment stat, not core analysis output --
-    unlike chunker._count_tokens (whose failure must abort the run, since
-    every batch depends on it), a failure here is logged and degrades to 0
-    rather than sinking an otherwise-successful run over a display figure.
+def _estimate_repo_tokens(java_files: list[Path], config_files: list[Path]) -> int:
+    """Approximate token count of the entire raw repository (every `.java`
+    class file plus recognized config files): total characters divided by
+    `_ESTIMATED_CHARS_PER_TOKEN`. A local heuristic, NOT a live-tokenizer
+    count -- computed entirely offline so raw repository source is never
+    transmitted to the Anthropic API (or anywhere else) for this
+    report-only figure, and so it costs no API calls. It is the baseline
+    for `token_savings_pct`, so treat that percentage as approximate too.
     """
-    all_text = "".join(
-        path.read_text(encoding="utf-8", errors="replace") for path in java_files + config_files
+    total_chars = sum(
+        len(path.read_text(encoding="utf-8", errors="replace")) for path in java_files + config_files
     )
-    try:
-        return _count_tokens_for_text(all_text, anthropic_client, model)
-    except LLMExtractionError as exc:
-        logger.error("Raw-repository token estimation failed, reporting 0: %s", exc)
-        return 0
+    return round(total_chars / _ESTIMATED_CHARS_PER_TOKEN)
 
 
 def _compute_llm_input_characters(classes: list[ParsedClass], complexity_index: ComplexityIndex) -> int:
@@ -495,9 +513,10 @@ def _estimate_llm_tokens(
     Anthropic tokenizer. Computed for the whole codebase regardless of this
     run's cache state, so it's a stable "what this tool's extraction costs
     by design" figure -- not this run's actual, cache-discounted spend
-    (`RunMetadata.total_input_tokens`). Like `_estimate_repo_tokens`, this
-    is an optional report-enrichment stat: a failure is logged and
-    degrades to 0 rather than aborting the run.
+    (`RunMetadata.total_input_tokens`). Unlike `_estimate_repo_tokens`,
+    this text is exactly what gets sent to the LLM anyway, so counting it
+    live discloses nothing new. An optional report-enrichment stat: a
+    failure is logged and degrades to 0 rather than aborting the run.
     """
     condensed_text = "".join(render_class_for_prompt(cls, complexity_index) for cls in classes)
     try:
@@ -508,13 +527,15 @@ def _estimate_llm_tokens(
 
 
 def _compute_token_savings_pct(raw_tokens: int, llm_tokens: int) -> float:
-    """Percentage reduction from tokenizing the raw repository (
-    `_estimate_repo_tokens`) to the condensed text this tool actually sends
-    the LLM (`_estimate_llm_tokens`) -- the headline "how much token cost
-    this tool saves by extracting structure instead of shipping raw
-    source" figure. 0.0 if there's no raw-token baseline to compare against.
+    """Percentage reduction from the raw repository's approximate token
+    count (`_estimate_repo_tokens`, a local heuristic) to the condensed
+    text this tool actually sends the LLM (`_estimate_llm_tokens`, live
+    tokenizer) -- the headline "how much token cost this tool saves by
+    extracting structure instead of shipping raw source" figure, so an
+    estimate. 0.0 if either side is unavailable (e.g. the live count
+    failed and degraded to 0), rather than a misleading 100%.
     """
-    if raw_tokens <= 0:
+    if raw_tokens <= 0 or llm_tokens <= 0:
         return 0.0
     return round(100 * (1 - llm_tokens / raw_tokens), 1)
 
@@ -592,7 +613,7 @@ def _log_summary(analysis: ProjectAnalysis) -> None:
     logger.info(
         "Done: %d file(s) parsed (%d parse error(s)), %d class(es) analyzed, "
         "%d LLM call(s) made / %d served from cache, %d input + %d output tokens, "
-        "~$%.4f estimated cost",
+        "~$%.4f estimated cost, %d class(es) with failed analysis",
         m.total_files_parsed,
         len(m.parse_errors),
         len(analysis.classes),
@@ -601,4 +622,5 @@ def _log_summary(analysis: ProjectAnalysis) -> None:
         m.total_input_tokens,
         m.total_output_tokens,
         m.estimated_cost_usd,
+        m.classes_with_failed_analysis,
     )

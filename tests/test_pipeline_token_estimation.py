@@ -43,11 +43,14 @@ class _RecordingAnthropicClient(FakeAnthropicClient):
     def __init__(self, **_: Any) -> None:
         super().__init__()
         self.sent_texts: list[str] = []
+        self.sent_tools: list[list[dict[str, Any]]] = []
         original = self.messages.count_tokens
 
-        def recording_count_tokens(*, model: str, messages: list[dict[str, str]]) -> Any:
+        def recording_count_tokens(*, model: str, messages: list[dict[str, str]], **extra: Any) -> Any:
             self.sent_texts.append(messages[0]["content"])
-            return original(model=model, messages=messages)
+            if extra.get("tools"):
+                self.sent_tools.append(extra["tools"])
+            return original(model=model, messages=messages, **extra)
 
         self.messages.count_tokens = recording_count_tokens  # type: ignore[method-assign]
 
@@ -107,6 +110,30 @@ def test_run_pipeline_never_sends_raw_source_to_count_tokens(
     assert not any(_RAW_SOURCE_MARKER in text for text in sent_texts)
     assert analysis.metadata.estimated_total_tokens > 0
     assert analysis.metadata.estimated_llm_tokens > 0
+
+
+def test_run_pipeline_reserves_structured_output_tool_definition(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    repo = tmp_path / "repo"
+    java_dir = repo / "src" / "main" / "java" / "com" / "example" / "app" / "services" / "billing" / "service"
+    java_dir.mkdir(parents=True)
+    (java_dir / "InvoiceService.java").write_text(_JAVA_SOURCE, encoding="utf-8")
+
+    recorded: list[_RecordingAnthropicClient] = []
+
+    def make_client(**kwargs: Any) -> _RecordingAnthropicClient:
+        client = _RecordingAnthropicClient(**kwargs)
+        recorded.append(client)
+        return client
+
+    monkeypatch.setattr(pipeline, "Anthropic", make_client)
+    monkeypatch.setattr(pipeline, "LLMClient", _FailingLLMClient)
+
+    run_pipeline(_settings(repo, tmp_path))
+
+    # Counted exactly once for the whole run, not once per batch/class.
+    assert [tool["name"] for tools in recorded[0].sent_tools for tool in tools] == ["ClassBatchAnalysis"]
 
 
 def test_estimate_repo_tokens_is_a_local_chars_per_token_approximation(tmp_path: Path) -> None:

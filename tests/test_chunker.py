@@ -11,6 +11,7 @@ tokenizer's own measurement of the fixtures, rather than hardcoded numbers
 from __future__ import annotations
 
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
 
@@ -23,6 +24,10 @@ from .conftest import FakeAnthropicClient
 _MODEL = "claude-haiku-4-5"
 
 _SEPARATOR_OVERHEAD_TOKENS = 10
+
+_TOOLS: list[dict[str, Any]] = [{"name": "Analysis", "input_schema": {"type": "object"}}]
+_TOOL_CHOICE = {"type": "tool", "name": "Analysis"}
+_TOOL_TOKENS = 25  # fixed cost `_NonAdditiveClient` charges any request that carries `tools`
 
 
 def _non_additive_tokens(text: str) -> int:
@@ -37,12 +42,22 @@ class _NonAdditiveClient:
 
     def __init__(self) -> None:
         self.counted_texts: list[str] = []
+        self.tool_counts = 0
         self.messages = SimpleNamespace(count_tokens=self._count_tokens)
 
-    def _count_tokens(self, *, model: str, messages: list[dict[str, str]]) -> SimpleNamespace:
+    def _count_tokens(
+        self,
+        *,
+        model: str,
+        messages: list[dict[str, str]],
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: dict[str, Any] | None = None,
+    ) -> SimpleNamespace:
         text = messages[0]["content"]
         self.counted_texts.append(text)
-        return SimpleNamespace(input_tokens=_non_additive_tokens(text))
+        if tools:
+            self.tool_counts += 1
+        return SimpleNamespace(input_tokens=_non_additive_tokens(text) + (_TOOL_TOKENS if tools else 0))
 
 
 def _make_class(name: str, method_count: int) -> ParsedClass:
@@ -293,4 +308,98 @@ def test_system_prompt_larger_than_ceiling_fails_fast(fake_anthropic_client: Fak
             batch_size=3,
             token_ceiling=10,
             system_prompt="x" * 400,
+        )
+
+
+def test_tool_definition_tokens_are_reserved_from_ceiling(fake_anthropic_client: FakeAnthropicClient) -> None:
+    classes = [_make_class(f"Class{i}", method_count=4) for i in range(2)]
+    class_tokens = _tokens_for(fake_anthropic_client, classes[0])
+    tool_tokens = fake_anthropic_client.messages.count_tokens(
+        model=_MODEL, messages=[{"role": "user", "content": "."}], tools=_TOOLS, tool_choice=_TOOL_CHOICE
+    ).input_tokens
+
+    # Both classes fit under the raw ceiling, but not once the tool
+    # definition's tokens are reserved; each class alone still fits.
+    token_ceiling = 2 * class_tokens + 10
+    assert token_ceiling - tool_tokens < 2 * class_tokens
+    assert token_ceiling - tool_tokens >= class_tokens
+
+    def build(tools: list[dict[str, Any]] | None) -> list[int]:
+        batches = build_batches(
+            classes,
+            complexity_index={},
+            anthropic_client=fake_anthropic_client,
+            model=_MODEL,
+            batch_size=100,
+            token_ceiling=token_ceiling,
+            tools=tools,
+            tool_choice=_TOOL_CHOICE if tools else None,
+        )
+        return [len(b.classes) for b in batches]
+
+    assert build(None) == [2]
+    assert build(_TOOLS) == [1, 1]
+
+
+def test_system_prompt_and_tool_definition_are_measured_in_one_call() -> None:
+    classes = [_make_class(f"Class{i}", method_count=1) for i in range(6)]
+    client = _NonAdditiveClient()
+    system_prompt = "You are analyzing Java classes."
+
+    build_batches(
+        classes,
+        complexity_index={},
+        anthropic_client=client,  # type: ignore[arg-type]
+        model=_MODEL,
+        batch_size=3,
+        token_ceiling=1_000_000,
+        system_prompt=system_prompt,
+        tools=_TOOLS,
+        tool_choice=_TOOL_CHOICE,
+    )
+
+    # One fixed-overhead call per run -- not per batch -- and it is the only
+    # call that carries the tools; per-class/batch counts stay tool-free.
+    assert client.tool_counts == 1
+    assert client.counted_texts.count(system_prompt) == 1
+    assert len(client.counted_texts) == 1 + 6 + 2
+
+
+def test_tool_definition_reservation_applies_to_assembled_batch_verification() -> None:
+    classes = [_make_class(f"Class{i}", method_count=2) for i in range(2)]
+    client = _NonAdditiveClient()
+    class_tokens = _non_additive_tokens(render_class_for_prompt(classes[0], {}))
+    assembled = _non_additive_tokens("\n\n".join(render_class_for_prompt(c, {}) for c in classes))
+
+    # Fixed overhead here is the "." stand-in message plus the tool tokens.
+    fixed_tokens = _non_additive_tokens(".") + _TOOL_TOKENS
+    token_ceiling = assembled + fixed_tokens - 1
+    assert 2 * class_tokens <= token_ceiling - fixed_tokens < assembled
+
+    batches = build_batches(
+        classes,
+        complexity_index={},
+        anthropic_client=client,  # type: ignore[arg-type]
+        model=_MODEL,
+        batch_size=100,
+        token_ceiling=token_ceiling,
+        tools=_TOOLS,
+        tool_choice=_TOOL_CHOICE,
+    )
+
+    assert [len(b.classes) for b in batches] == [1, 1]
+    assert all(_non_additive_tokens(b.prompt_text) + fixed_tokens <= token_ceiling for b in batches)
+
+
+def test_tool_definition_larger_than_ceiling_fails_fast() -> None:
+    with pytest.raises(LLMExtractionError, match="leaving no room"):
+        build_batches(
+            [_make_class("Class0", method_count=1)],
+            complexity_index={},
+            anthropic_client=_NonAdditiveClient(),  # type: ignore[arg-type]
+            model=_MODEL,
+            batch_size=3,
+            token_ceiling=_TOOL_TOKENS,
+            tools=_TOOLS,
+            tool_choice=_TOOL_CHOICE,
         )

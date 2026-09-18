@@ -9,7 +9,9 @@ let `java_parser.py` be tested without cloning a repository.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from typing import Any
 
 import pytest
 
@@ -24,11 +26,20 @@ class _FakeMessages:
     method `chunker.py` actually calls is implemented.
     """
 
-    def count_tokens(self, *, model: str, messages: list[dict[str, str]]) -> _FakeCountTokensResponse:
+    def count_tokens(
+        self,
+        *,
+        model: str,
+        messages: list[dict[str, str]],
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: dict[str, Any] | None = None,
+    ) -> _FakeCountTokensResponse:
         text = messages[0]["content"]
         # A simple, deterministic stand-in for a real tokenizer -- good
         # enough to exercise batching thresholds without a network call.
-        return _FakeCountTokensResponse(input_tokens=max(1, len(text) // 4))
+        # Tool definitions count toward input tokens, as they do for real.
+        tool_text = json.dumps(tools) + json.dumps(tool_choice) if tools else ""
+        return _FakeCountTokensResponse(input_tokens=max(1, len(text) // 4) + len(tool_text) // 4)
 
 
 class FakeAnthropicClient:

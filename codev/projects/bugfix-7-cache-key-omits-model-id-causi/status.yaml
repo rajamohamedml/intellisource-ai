@@ -1,0 +1,24 @@
+id: bugfix-7
+title: cache-key-omits-model-id-causi
+protocol: bugfix
+phase: verified
+plan_phases: []
+current_plan_phase: null
+gates:
+  pr:
+    status: approved
+    requested_at: '2026-09-18T00:35:11.488Z'
+    approved_at: '2026-09-18T00:37:19.885Z'
+iteration: 1
+build_complete: false
+history: []
+started_at: '2026-09-18T00:20:24.168Z'
+updated_at: '2026-09-18T00:39:13.858Z'
+pr_ready_for_human: false
+pr_history:
+  - phase: verified
+    pr_number: 14
+    branch: builder/bugfix-7
+    created_at: '2026-09-18T00:39:12.276Z'
+    merged: true
+    merged_at: '2026-09-18T00:39:13.857Z'

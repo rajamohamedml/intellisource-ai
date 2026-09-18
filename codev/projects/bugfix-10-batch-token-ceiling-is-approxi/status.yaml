@@ -1,0 +1,16 @@
+id: bugfix-10
+title: batch-token-ceiling-is-approxi
+protocol: bugfix
+phase: pr
+plan_phases: []
+current_plan_phase: null
+gates:
+  pr:
+    status: pending
+    requested_at: '2026-09-18T18:17:06.347Z'
+iteration: 1
+build_complete: false
+history: []
+started_at: '2026-09-18T18:11:18.792Z'
+updated_at: '2026-09-18T18:17:06.348Z'
+pr_ready_for_human: true

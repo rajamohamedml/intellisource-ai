@@ -37,7 +37,7 @@ _PRICING_USD_PER_MILLION_TOKENS: dict[str, tuple[float, float]] = {
 }
 _DEFAULT_PRICING = (1.00, 5.00)  # fall back to Haiku-tier pricing for an unrecognized model ID
 
-_BATCH_SYSTEM_PROMPT = (
+BATCH_SYSTEM_PROMPT = (
     "You are analyzing Java classes from a Spring Boot codebase. For each class "
     "provided, write a concise, technically accurate description of its purpose "
     "and, for every method listed, a one-sentence description of what it does. "
@@ -152,7 +152,7 @@ class LLMClient:
             LLMExtractionError: if the call fails after the SDK's own
                 retries, or the response fails schema validation.
         """
-        messages = [("system", _BATCH_SYSTEM_PROMPT), ("human", prompt_text)]
+        messages = [("system", BATCH_SYSTEM_PROMPT), ("human", prompt_text)]
         result: ClassBatchAnalysis = self._invoke(self._batch_chain, messages, ClassBatchAnalysis)
         return result
 

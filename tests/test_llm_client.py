@@ -14,7 +14,13 @@ from typing import Any
 import pytest
 
 from intellisource_ai.exceptions import LLMExtractionError
-from intellisource_ai.llm_client import LLMClient, UsageTracker, _recover_stringified_fields
+from intellisource_ai.llm_client import (
+    BATCH_TOOL_CHOICE,
+    BATCH_TOOL_DEFINITION,
+    LLMClient,
+    UsageTracker,
+    _recover_stringified_fields,
+)
 from intellisource_ai.schemas import ClassBatchAnalysis
 
 
@@ -105,3 +111,17 @@ def test_analyze_batch_still_raises_when_unrecoverable(monkeypatch: pytest.Monke
 
     with pytest.raises(LLMExtractionError, match="totally broken"):
         client.analyze_batch("irrelevant prompt text")
+
+
+def test_batch_tool_reservation_matches_what_the_real_chain_sends() -> None:
+    """`chunker.build_batches` reserves `BATCH_TOOL_DEFINITION`'s tokens from
+    the ceiling; that only holds while it equals what LangChain's
+    `with_structured_output` really binds onto every batch request. Fails
+    loudly if a langchain upgrade (or a change to how the chain is built)
+    makes the two drift apart.
+    """
+    client = LLMClient(api_key="test-key", model="claude-haiku-4-5", usage_tracker=UsageTracker(model="m"))
+    bound_kwargs = client._batch_chain.first.steps__["raw"].kwargs  # type: ignore[attr-defined]
+
+    assert bound_kwargs["tools"] == [BATCH_TOOL_DEFINITION]
+    assert bound_kwargs["tool_choice"] == BATCH_TOOL_CHOICE

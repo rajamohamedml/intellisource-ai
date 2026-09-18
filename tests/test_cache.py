@@ -110,3 +110,22 @@ def test_malformed_entry_is_evicted_so_it_does_not_recur_on_save(tmp_path: Path)
 
     persisted = json.loads(cache_path.read_text(encoding="utf-8"))
     assert key not in persisted
+
+
+def test_null_entry_degrades_to_miss_and_is_evicted(tmp_path: Path) -> None:
+    """A JSON `null` value for a key (distinct from the key being absent)
+    must still be treated as a malformed entry and evicted, not silently
+    kept around as a permanent miss.
+    """
+    cache_path = tmp_path / "llm_cache.json"
+    key = compute_cache_key("rendered class text", "claude-sonnet-4-6")
+    cache_path.write_text(json.dumps({key: None}), encoding="utf-8")
+
+    cache = LLMCache(cache_path)
+    result = cache.get(key)
+    cache.save()
+
+    assert result is None
+    assert cache.misses == 1
+    persisted = json.loads(cache_path.read_text(encoding="utf-8"))
+    assert key not in persisted

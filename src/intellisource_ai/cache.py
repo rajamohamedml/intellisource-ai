@@ -81,12 +81,11 @@ class LLMCache:
         without a `PROMPT_VERSION` bump, or a hand-edited value) is evicted
         so it doesn't recur on `save()`.
         """
-        raw = self._entries.get(key)
-        if raw is None:
+        if key not in self._entries:
             self._misses += 1
             return None
         try:
-            result = ClassDescription.model_validate(raw)
+            result = ClassDescription.model_validate(self._entries[key])
         except ValidationError as exc:
             logger.warning("Ignoring malformed cache entry for key %s: %s", key, exc)
             del self._entries[key]

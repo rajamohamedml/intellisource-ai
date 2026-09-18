@@ -182,3 +182,20 @@ def test_verification_adds_one_count_per_multi_class_batch_only() -> None:
     # batches; no per-addition re-measurement of the growing batch text.
     assert len(client.counted_texts) == 6 + 2
     assert all(b.prompt_text in client.counted_texts for b in batches)
+
+
+def test_single_class_batches_are_not_reverified() -> None:
+    classes = [_make_class(f"Class{i}", method_count=1) for i in range(3)]
+    client = _NonAdditiveClient()
+
+    batches = build_batches(
+        classes,
+        complexity_index={},
+        anthropic_client=client,  # type: ignore[arg-type]
+        model=_MODEL,
+        batch_size=1,
+        token_ceiling=1_000_000,
+    )
+
+    assert len(batches) == 3
+    assert len(client.counted_texts) == 3

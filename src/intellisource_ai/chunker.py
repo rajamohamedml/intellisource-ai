@@ -5,8 +5,9 @@ request (system prompt, schema description) across all of them. A hard
 token ceiling — verified against the real Anthropic tokenizer via
 `client.messages.count_tokens`, never a character-count guess or
 `tiktoken` (the wrong tokenizer for Claude) — keeps every call bounded and
-cheap, satisfying the "without exceeding token limits" requirement
-literally rather than approximately.
+cheap. The ceiling bounds each batch's condensed class text, verified by
+re-counting the assembled text; it does not include the fixed system-prompt
+and structured-output schema overhead added at dispatch time.
 """
 
 from __future__ import annotations
@@ -154,7 +155,7 @@ def _verified_batches(
     if len(classes) == 1 or _count_tokens(client, model, prompt_text) <= token_ceiling:
         return [ClassBatch(classes=list(classes), prompt_text=prompt_text)]
 
-    logger.info(
+    logger.warning(
         "Assembled batch of %d classes exceeds the %d-token ceiling despite per-class counts "
         "fitting; re-splitting it.",
         len(classes),
@@ -240,8 +241,9 @@ def build_batches(
             LangChain `ChatAnthropic` chains used for the actual analysis.
         model: Model ID to count tokens against (tokenization is model-specific).
         batch_size: Maximum classes per batch.
-        token_ceiling: Maximum input tokens per batch, enforced via real
-            token counts, not a character-count approximation.
+        token_ceiling: Maximum input tokens for each batch's assembled class
+            text, enforced via real token counts (excluding the fixed
+            system-prompt/schema overhead added at dispatch time).
     """
     by_directory: dict[str, list[ParsedClass]] = {}
     for cls in classes:

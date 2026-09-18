@@ -2,7 +2,8 @@
 
 Keyed by a hash of the exact prompt content that would be sent to the LLM
 for one class (its rendered signature/annotation/complexity text, from
-`chunker.render_class_for_prompt`) plus `PROMPT_VERSION`. This means:
+`chunker.render_class_for_prompt`) plus `PROMPT_VERSION` and the model ID.
+This means:
 
   - An unchanged class on a re-run is a guaranteed cache hit — zero
     additional LLM cost for a repeated demo run or a re-run after editing
@@ -10,6 +11,8 @@ for one class (its rendered signature/annotation/complexity text, from
   - Bumping `PROMPT_VERSION` after changing the extraction prompt
     invalidates every cached entry at once, rather than silently mixing
     results produced under different prompt versions.
+  - Switching `--model` invalidates every cached entry at once, rather
+    than silently reusing a description produced by a different model.
 """
 
 from __future__ import annotations
@@ -30,9 +33,13 @@ logger = logging.getLogger(__name__)
 PROMPT_VERSION = "v1"
 
 
-def compute_cache_key(rendered_class_text: str) -> str:
-    """Derive a stable cache key from one class's rendered prompt text."""
-    payload = f"{PROMPT_VERSION}:{rendered_class_text}".encode()
+def compute_cache_key(rendered_class_text: str, model: str) -> str:
+    """Derive a stable cache key from one class's rendered prompt text and
+    the model that will produce the description. Including `model` ensures
+    switching `--model` naturally invalidates prior entries instead of
+    silently reusing a description produced by a different model.
+    """
+    payload = f"{PROMPT_VERSION}:{model}:{rendered_class_text}".encode()
     return hashlib.sha256(payload).hexdigest()
 
 

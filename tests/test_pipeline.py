@@ -147,4 +147,28 @@ def test_report_surfaces_failed_analysis_tile_and_badge(parsed_classes: list[Par
     html = render_report(analysis)
 
     assert "Classes With Failed Analysis" in html
-    assert "analysis failed" in html
+    assert 'class="type-badge analysis-failed"' in html
+
+
+def test_report_omits_failed_badge_when_every_class_was_described(parsed_classes: list[ParsedClass]) -> None:
+    descriptions = {
+        (cls.file_path, cls.class_name): ClassDescription(class_name=cls.class_name, description="Ok.")
+        for cls in parsed_classes
+    }
+    analyzed = _assemble(parsed_classes, descriptions)
+    analysis = ProjectAnalysis(
+        project=ProjectOverview(name="P", description="d", architecture_summary="a"),
+        classes=analyzed,
+        metadata=RunMetadata(
+            generated_at="2026-01-01T00:00:00+00:00",
+            model_used="m",
+            total_files_parsed=2,
+            llm_calls_made=1,
+            llm_calls_cached=0,
+            total_input_tokens=1,
+            total_output_tokens=1,
+            estimated_cost_usd=0.0,
+        ),
+    )
+
+    assert 'class="type-badge analysis-failed"' not in render_report(analysis)

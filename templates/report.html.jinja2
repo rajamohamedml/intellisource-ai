@@ -555,7 +555,7 @@
   <section>
     <h2 class="at-a-glance-title">At a Glance</h2>
     <div class="stats-grid">
-    {{ tile(total_classes, "Classes Analyzed", "Total classes (including nested/static classes) this run extracted and described.") }}
+    {{ tile(total_classes, "Classes Analyzed", "Total classes (including nested/static classes) this run extracted and analyzed; see Classes With Failed Analysis for any the LLM did not describe.") }}
     {{ tile(total_methods, "Methods Analyzed", "Total methods found across all analyzed classes.") }}
     {{ tile(total_endpoints, "REST Endpoints Discovered", "Total Spring REST endpoints detected across the codebase.") }}
     {{ tile(high_complexity_count, "High-Complexity Methods", "Methods flagged as unusually complex by the heuristic complexity check.", "count of methods where the heuristic cyclomatic-complexity estimate exceeds the built-in threshold") }}

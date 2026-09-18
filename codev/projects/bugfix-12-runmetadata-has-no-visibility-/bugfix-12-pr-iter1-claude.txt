@@ -1,0 +1,75 @@
+I'll review this PR by reading the diff and the relevant source files.I reviewed the working tree directly (not just the diff) — note that the tree is live: a modification to `templates/report.html.jinja2` appeared mid-review and a second consult-output file was created while I was reading. I made no changes and did not run `pytest`/`ruff` (that would write into the tree you're working in); everything below is from reading code.
+
+## Correctness
+
+The fix is right at the root cause and minimal. `_assemble_classes` is the single place that applies the `"Description unavailable."` placeholder, and it is the single place the new `analysis_status` is set — the status can't drift from the placeholder because both are derived from the same `description is None` test (pipeline.py:361-362). `_count_failed_analyses` then derives the metadata count from the assembled classes rather than re-deriving it from the descriptions dict, so `RunMetadata.classes_with_failed_analysis` can't disagree with the per-class flags or with the report.
+
+Both failure paths funnel through the same hole and are both covered: `_process_batch` returning early on `LLMExtractionError` (pipeline.py:284-288), and a class the LLM omits or renames (pipeline.py:290-298) — in both cases no fragment is recorded, so the key is missing from `descriptions`.
+
+One property worth calling out because it's load-bearing and not obvious: a failed class is never cached. `_analyze_classes` only writes to the cache from `fragments` (pipeline.py:264-273), so a `failed` class is retried on the next run rather than having the placeholder frozen into `.cache/`. That's the correct behaviour; it's currently protected only by code shape, so a one-line assertion in the failed-batch test (`cache.set` not called / key absent) would be cheap insurance.
+
+Schema handling is sound: `analysis_status` and `classes_with_failed_analysis` are both defaulted, so old `analysis.json` still validates, and the 1.3 → 1.4 bump matches how 1.3 was introduced.
+
+## Issues
+
+**1. Uncommitted change in the tree (must fix before merge).** `templates/report.html.jinja2:558` in the working tree reads `"...extracted and analyzed; see Classes With Failed Analysis for any the LLM did not describe."`, but `HEAD` still has `"...extracted and described."`. It's a good change — commit it, or the PR won't contain it. Also decide whether `codev/projects/bugfix-12-.../bugfix-12-pr-iter1-{gemini,codex}.txt` (both untracked) belong in the PR.
+
+**2. The badge assertion in the report test is vacuous.** `test_report_surfaces_failed_analysis_tile_and_badge` asserts `"analysis failed" in html`, but the tile's tooltip text itself contains the literal string `count of classes marked analysis failed` (template line 562). Delete both badge blocks (lines 661-663 and 694-696) and that assertion still passes — only the first assertion is doing work. The discriminating string is the CSS class, which appears nowhere else:
+
+```python
+assert html.count('class="type-badge analysis-failed"') == 2 * len(analyzed)  # card + dialog
+```
+
+That also pins that *every* failed class is marked, not just one. While there, asserting the `severity-high` tile class appears when the count is non-zero would cover the conditional in the tile call, which is currently untested in either direction.
+
+**3. Partial fragments stay `described` (known gap, fine for this PR).** A class split by `chunker._split_oversized_class` whose sub-batches partly fail gets a merged description from the surviving fragments and stays `DESCRIBED`, with silent per-method placeholders. The test helper `_describe` takes `fragments[0]` instead of going through `_merge_fragments`, so this path isn't exercised at all. You documented this as deliberate class-level scope and I agree it's out of a bugfix's bounds — worth a follow-up issue (a `methods_with_failed_analysis` count would close the remaining half of #12's "undescribed" concern).
+
+**4. Stale sample artifacts (informational).** `output/analysis.json`, `output/analysis.schema.json`, and `output/full-run-report/*` still declare `schema_version: "1.3"` and lack the new fields. That matches how prior bumps were handled (`fd6ed22` "Regenerate analysis output…" was a separate commit needing a live run), so not a blocker — just don't let the committed schema drift indefinitely.
+
+## Minor
+
+- The dialog badge (line 695) omits the `title=` tooltip the card badge has (line 662); harmless inconsistency.
+- `.type-badge.analysis-failed` has no border while the visually-similar `.security-badge` does — cosmetic.
+- `cls.analysis_status.value == "failed"` matches the existing `class_type.value` convention, so it reads consistently even though `StrEnum` would allow the shorter comparison.
+
+Scope, commit format (`Fix #12: ...`), `Fixes #12` linkage, and PR body sections all check out; 232/-6 with 150 lines of that being tests is well within bugfix bounds.
+
+---
+VERDICT: APPROVE
+SUMMARY: Focused, root-cause fix with solid regression coverage; commit the pending template tweak and tighten the vacuous badge assertion.
+CONFIDENCE: HIGH
+---
+KEY_ISSUES:
+- Uncommitted working-tree edit to `templates/report.html.jinja2:558` (plus two untracked consult files) — commit or discard before merge
+- `assert "analysis failed" in html` is satisfied by the tile tooltip text alone; it does not actually test the per-class badge — assert on `class="type-badge analysis-failed"` instead
+- Partial sub-batch failures on an oversized class still report `described`; documented as out of scope, worth a follow-up issue
+- Committed sample outputs under `output/` still declare `schema_version: 1.3` (consistent with past practice; informational)
+
+PR_SUMMARY: |
+  ## Summary
+  Fixes #12. A class the LLM never described — because its batch errored or because the LLM omitted it from an otherwise-successful response — silently received the `"Description unavailable."` placeholder, indistinguishable in `analysis.json` and `report.html` from a real but terse description. Failed analyses are now explicitly flagged, counted, and surfaced in the report.
+
+  ## Root Cause
+  `pipeline._process_batch` swallows `LLMExtractionError` (log and return), and a class the LLM omits simply never lands in the `fragments` map. `_assemble_classes` then applies the placeholder description with no status recorded anywhere — neither on the class nor in `RunMetadata` — so a reader could not tell a failure from a legitimately short description.
+
+  ## Fix
+  - `AnalysisStatus` (`described` / `failed`) and `ClassAnalysis.analysis_status`, set in `_assemble_classes` from the same `description is None` test that applies the placeholder, so the two can never disagree.
+  - `RunMetadata.classes_with_failed_analysis`, derived from the assembled classes via `_count_failed_analyses`, and included in the run-summary log line.
+  - Report: a "Classes With Failed Analysis" tile (red when non-zero) and an "analysis failed" badge on affected class cards and dialogs.
+  - `SCHEMA_VERSION` 1.3 → 1.4: the new fields are additive and defaulted (old JSON still validates), but `analysis.schema.json` is a versioned deliverable whose shape changed.
+
+  Scope is class-level by design: a class the LLM described but with some *methods* omitted still shows per-method placeholders and stays `described`. Failed classes are not written to the LLM cache, so they are retried on the next run rather than having the placeholder frozen in.
+
+  ## Test Plan
+  - `tests/test_pipeline.py` (offline, stub LLM client): failed batch → every class `failed` and counted; class omitted from an otherwise-successful response → `failed` while its described sibling stays `described`; a terse-but-real description with no notable aspects is *not* counted as failed; the rendered report contains the tile and the badge.
+  - Tests fail without the fix (`ImportError` on `AnalysisStatus` / `_count_failed_analyses`) and pass with it.
+  - `ruff check .`, `mypy src`, `pytest` (60 passed).
+
+---
+
+## ⚠️ WORKING TREE CHANGED during the claude review (#1649).
+A consultant reviews the tree; it must never write to it. 1 path changed while this lane was running:
+  - templates/report.html.jinja2
+Check `git status` and `git diff` before trusting this review or shipping the branch.
+Note: under cmap the lanes run concurrently in one worktree, so another lane — or you —
+may be the writer. This warning names what moved, not who moved it.

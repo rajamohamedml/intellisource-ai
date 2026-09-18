@@ -321,8 +321,8 @@
         <div class="rail"><div class="dot">7</div></div>
         <div class="card">
           <div class="card-head"><h3>Batching <span class="modtag">chunker.py: build_batches()</span></h3><span class="chip ai">Prep</span></div>
-          <p class="plain">Cache-miss classes get grouped by source directory (so a batch shares feature/layer context), then capped two ways: a max class count (<code class="font-mono">--batch-size</code>, default 6) and a real token ceiling (default 4,000 input tokens) — measured via the Anthropic SDK's actual <code class="font-mono">count_tokens</code> endpoint, never a character-count guess. A single class too large on its own gets its methods split across sub-batches instead of truncated.</p>
-          <div class="tech"><span class="tech-label">Technically</span>chunker.py: build_batches() groups cache-misses by source directory, capped by --batch-size and a real token ceiling.</div>
+          <p class="plain">Cache-miss classes get grouped by source directory (so a batch shares feature/layer context), then capped two ways: a max class count (<code class="font-mono">--batch-size</code>, default 6) and a real token ceiling (default 4,000 input tokens) — measured via the Anthropic SDK's actual <code class="font-mono">count_tokens</code> endpoint, never a character-count guess. A single class too large on its own gets its methods split across sub-batches instead of truncated. The ceiling is per request: the constant system prompt is counted once and reserved from it, and each multi-class batch's assembled text is re-counted once before dispatch — split in half only in the rare case the per-class sum undershot — so the common path stays O(n) in <code class="font-mono">count_tokens</code> calls. (Structured-output schema overhead isn't counted yet.)</p>
+          <div class="tech"><span class="tech-label">Technically</span>chunker.py: build_batches() groups cache-misses by source directory, capped by --batch-size and a real token ceiling; _verified_batches() re-counts each assembled multi-class batch once and bisects it if it overshoots.</div>
         </div>
       </div>
 

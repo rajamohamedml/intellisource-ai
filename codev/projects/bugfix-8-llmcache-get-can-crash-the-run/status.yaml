@@ -1,7 +1,7 @@
 id: bugfix-8
 title: llmcache-get-can-crash-the-run
 protocol: bugfix
-phase: investigate
+phase: fix
 plan_phases: []
 current_plan_phase: null
 gates:
@@ -11,4 +11,4 @@ iteration: 1
 build_complete: false
 history: []
 started_at: '2026-09-18T14:10:09.285Z'
-updated_at: '2026-09-18T14:10:09.285Z'
+updated_at: '2026-09-18T14:10:34.708Z'

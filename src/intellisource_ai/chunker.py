@@ -5,16 +5,17 @@ request (system prompt, schema description) across all of them. A hard
 token ceiling — verified against the real Anthropic tokenizer via
 `client.messages.count_tokens`, never a character-count guess or
 `tiktoken` (the wrong tokenizer for Claude) — keeps every call bounded and
-cheap. The ceiling bounds each request's input: the fixed system prompt is
-counted once and reserved from it, and each batch's assembled class text is
-re-counted to verify it fits the remainder. The structured-output
-schema/tool-definition overhead added at dispatch time is not yet counted.
+cheap. The ceiling bounds each request's input: the fixed system prompt and
+the structured-output tool definition are counted once, together, and
+reserved from it, and each batch's assembled class text is re-counted to
+verify it fits the remainder.
 """
 
 from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from typing import Any
 
 from anthropic import Anthropic
 
@@ -76,8 +77,17 @@ def render_class_for_prompt(
     )
 
 
-def _count_tokens(client: Anthropic, model: str, text: str) -> int:
-    """Count tokens for `text` via the real Anthropic tokenizer.
+def _count_tokens(
+    client: Anthropic,
+    model: str,
+    text: str,
+    *,
+    tools: list[dict[str, Any]] | None = None,
+    tool_choice: dict[str, Any] | None = None,
+) -> int:
+    """Count tokens for `text` via the real Anthropic tokenizer, plus the
+    tokens of `tools`/`tool_choice` when given (the API counts a request's
+    tool definitions as input, exactly as it will on the real call).
 
     Raises:
         LLMExtractionError: on any SDK-level failure (bad API key, network
@@ -88,8 +98,15 @@ def _count_tokens(client: Anthropic, model: str, text: str) -> int:
             is deliberately allowed to propagate and fail the whole run
             with a clean error rather than attempting per-class recovery.
     """
+    extra: dict[str, Any] = {}
+    if tools:
+        extra["tools"] = tools
+        if tool_choice:
+            extra["tool_choice"] = tool_choice
     try:
-        response = client.messages.count_tokens(model=model, messages=[{"role": "user", "content": text}])
+        response = client.messages.count_tokens(
+            model=model, messages=[{"role": "user", "content": text}], **extra
+        )
     except Exception as exc:
         raise LLMExtractionError(f"Token counting failed: {exc}") from exc
     return response.input_tokens
@@ -227,6 +244,8 @@ def build_batches(
     batch_size: int,
     token_ceiling: int,
     system_prompt: str = "",
+    tools: list[dict[str, Any]] | None = None,
+    tool_choice: dict[str, Any] | None = None,
 ) -> list[ClassBatch]:
     """Group `classes` into token-bounded batches for LLM analysis.
 
@@ -244,24 +263,32 @@ def build_batches(
         model: Model ID to count tokens against (tokenization is model-specific).
         batch_size: Maximum classes per batch.
         token_ceiling: Maximum input tokens per request, enforced via real
-            token counts. `system_prompt`'s tokens are reserved from it, so
-            each batch's class text gets the remainder. Structured-output
-            schema/tool-definition overhead is not yet counted.
-        system_prompt: The constant system prompt sent with every batch. It is
-            counted once (as a user message, which slightly over-reserves by
-            the fixed message framing -- the safe direction).
+            token counts. The tokens of `system_prompt` and `tools` are
+            reserved from it, so each batch's class text gets the remainder.
+        system_prompt: The constant system prompt sent with every batch.
+        tools: The tool definition(s) the structured-output call attaches to
+            every batch request (see `llm_client.BATCH_TOOL_DEFINITION`).
+        tool_choice: The forced `tool_choice` sent alongside `tools`; it adds
+            its own fixed tokens, so it is counted with them.
+
+    The fixed overhead is measured with one `count_tokens` call per run -- the
+    system prompt goes in as a user message, which slightly over-reserves by
+    the fixed message framing (the safe direction) -- never once per batch.
 
     Raises:
-        LLMExtractionError: if token counting fails, or if `system_prompt`
+        LLMExtractionError: if token counting fails, or if the fixed overhead
             alone consumes the whole ceiling.
     """
     effective_ceiling = token_ceiling
-    if system_prompt:
-        effective_ceiling -= _count_tokens(anthropic_client, model, system_prompt)
+    if system_prompt or tools:
+        # The API rejects an empty message, hence the "." stand-in.
+        effective_ceiling -= _count_tokens(
+            anthropic_client, model, system_prompt or ".", tools=tools, tool_choice=tool_choice
+        )
         if effective_ceiling < 1:
             raise LLMExtractionError(
-                f"The system prompt alone uses {token_ceiling - effective_ceiling} tokens, leaving no room "
-                f"under the {token_ceiling}-token ceiling; raise the token ceiling."
+                f"The system prompt and tool definition alone use {token_ceiling - effective_ceiling} "
+                f"tokens, leaving no room under the {token_ceiling}-token ceiling; raise the token ceiling."
             )
 
     by_directory: dict[str, list[ParsedClass]] = {}

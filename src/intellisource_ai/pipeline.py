@@ -24,7 +24,13 @@ from intellisource_ai.config import Settings
 from intellisource_ai.dependency_graph import build_dependency_graph, depends_on_by_class
 from intellisource_ai.exceptions import LLMExtractionError
 from intellisource_ai.java_parser import discover_java_files, parse_source_tree
-from intellisource_ai.llm_client import BATCH_SYSTEM_PROMPT, LLMClient, UsageTracker
+from intellisource_ai.llm_client import (
+    BATCH_SYSTEM_PROMPT,
+    BATCH_TOOL_CHOICE,
+    BATCH_TOOL_DEFINITION,
+    LLMClient,
+    UsageTracker,
+)
 from intellisource_ai.repo_fetcher import fetch_repository
 from intellisource_ai.report_generator import write_report
 from intellisource_ai.schemas import (
@@ -255,6 +261,8 @@ def _analyze_classes(
             batch_size=settings.batch_size,
             token_ceiling=settings.token_ceiling_per_batch,
             system_prompt=BATCH_SYSTEM_PROMPT,
+            tools=[BATCH_TOOL_DEFINITION],
+            tool_choice=BATCH_TOOL_CHOICE,
         )
         for batch in batches:
             _process_batch(batch, llm_client, fragments)

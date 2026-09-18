@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from langchain_anthropic import ChatAnthropic
+from langchain_anthropic.chat_models import convert_to_anthropic_tool
 from pydantic import BaseModel, SecretStr
 
 from intellisource_ai.exceptions import LLMExtractionError
@@ -48,6 +49,16 @@ BATCH_SYSTEM_PROMPT = (
     "security-relevant logic, or complexity concern, return an empty notable_aspects "
     "list rather than inventing one."
 )
+
+# The tool definition and forced tool choice `with_structured_output(
+# ClassBatchAnalysis)` attaches to every batch request, rebuilt through
+# LangChain's own converter so `chunker.build_batches` can hand the exact same
+# payload to `count_tokens` and reserve its tokens from the batch ceiling. The
+# field names and `description=` guidance text in `schemas.py` are part of
+# this payload, so schema edits are counted automatically.
+# `test_llm_client.py` asserts this still equals what the real chain sends.
+BATCH_TOOL_DEFINITION: dict[str, Any] = {**convert_to_anthropic_tool(ClassBatchAnalysis)}
+BATCH_TOOL_CHOICE: dict[str, Any] = {"type": "tool", "name": BATCH_TOOL_DEFINITION["name"]}
 
 _OVERVIEW_SYSTEM_PROMPT = (
     "You are summarizing a software project for a technical audience, given its "

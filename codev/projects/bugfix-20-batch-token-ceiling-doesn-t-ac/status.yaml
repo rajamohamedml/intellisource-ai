@@ -1,0 +1,14 @@
+id: bugfix-20
+title: batch-token-ceiling-doesn-t-ac
+protocol: bugfix
+phase: investigate
+plan_phases: []
+current_plan_phase: null
+gates:
+  pr:
+    status: pending
+iteration: 1
+build_complete: false
+history: []
+started_at: '2026-09-18T18:29:46.229Z'
+updated_at: '2026-09-18T18:29:46.230Z'

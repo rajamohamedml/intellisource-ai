@@ -233,7 +233,7 @@ def _analyze_classes(
 
     for cls in classes:
         key_tuple: ClassKey = (cls.file_path, cls.class_name)
-        cache_key = compute_cache_key(render_class_for_prompt(cls, complexity_index))
+        cache_key = compute_cache_key(render_class_for_prompt(cls, complexity_index), settings.model)
         cache_keys[key_tuple] = cache_key
         cached = cache.get(cache_key)
         if cached is not None:

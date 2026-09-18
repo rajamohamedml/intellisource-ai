@@ -134,6 +134,38 @@ def _split_oversized_class(
     return sub_batches
 
 
+def _verified_batches(
+    classes: list[ParsedClass],
+    rendered_parts: list[str],
+    client: Anthropic,
+    model: str,
+    token_ceiling: int,
+) -> list[ClassBatch]:
+    """Return `classes` as one batch, after confirming the assembled text
+    really fits `token_ceiling`; bisect and re-verify each half if it doesn't.
+
+    The additive per-class running total in `_batch_group` can undershoot
+    (separators and shared-context token boundaries aren't additive), so this
+    is the one exact check against the text that will actually be dispatched.
+    A single-class batch is never re-counted: its text is exactly the text
+    already measured (and found within the ceiling) when it was rendered.
+    """
+    prompt_text = "\n\n".join(rendered_parts)
+    if len(classes) == 1 or _count_tokens(client, model, prompt_text) <= token_ceiling:
+        return [ClassBatch(classes=list(classes), prompt_text=prompt_text)]
+
+    logger.info(
+        "Assembled batch of %d classes exceeds the %d-token ceiling despite per-class counts "
+        "fitting; re-splitting it.",
+        len(classes),
+        token_ceiling,
+    )
+    mid = len(classes) // 2
+    left = _verified_batches(classes[:mid], rendered_parts[:mid], client, model, token_ceiling)
+    right = _verified_batches(classes[mid:], rendered_parts[mid:], client, model, token_ceiling)
+    return left + right
+
+
 def _batch_group(
     classes: list[ParsedClass],
     complexity_index: ComplexityIndex,
@@ -150,8 +182,8 @@ def _batch_group(
     def flush() -> None:
         nonlocal current_classes, current_text_parts, current_token_estimate
         if current_classes:
-            batches.append(
-                ClassBatch(classes=list(current_classes), prompt_text="\n\n".join(current_text_parts))
+            batches.extend(
+                _verified_batches(current_classes, current_text_parts, client, model, token_ceiling)
             )
         current_classes, current_text_parts, current_token_estimate = [], [], 0
 
@@ -169,7 +201,9 @@ def _batch_group(
         # every addition — a small approximation (shared-context token
         # boundaries aren't perfectly additive) traded for O(n) instead of
         # O(n^2) count_tokens calls. The batch_size cap below is a second,
-        # independent safety margin against that approximation drifting.
+        # independent safety margin, and `_verified_batches` re-counts each
+        # multi-class batch's assembled text once (re-splitting in the rare
+        # case it overshoots), so the ceiling is still enforced literally.
         would_exceed = current_token_estimate + class_tokens > token_ceiling
         if current_classes and (would_exceed or len(current_classes) >= batch_size):
             flush()

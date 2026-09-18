@@ -10,12 +10,36 @@ tokenizer's own measurement of the fixtures, rather than hardcoded numbers
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 from intellisource_ai.chunker import build_batches, render_class_for_prompt
 from intellisource_ai.schemas import ClassType, ParsedClass, ParsedMethod
 
 from .conftest import FakeAnthropicClient
 
 _MODEL = "claude-haiku-4-5"
+
+_SEPARATOR_OVERHEAD_TOKENS = 10
+
+
+def _non_additive_tokens(text: str) -> int:
+    # Each "\n\n" (the join between classes in a multi-class batch) costs
+    # extra tokens that no per-class count ever sees -- exactly the drift
+    # the additive per-class running total in `_batch_group` can't detect.
+    return max(1, len(text) // 4) + _SEPARATOR_OVERHEAD_TOKENS * text.count("\n\n")
+
+
+class _NonAdditiveClient:
+    """Counts tokens with `_non_additive_tokens` and records every call."""
+
+    def __init__(self) -> None:
+        self.counted_texts: list[str] = []
+        self.messages = SimpleNamespace(count_tokens=self._count_tokens)
+
+    def _count_tokens(self, *, model: str, messages: list[dict[str, str]]) -> SimpleNamespace:
+        text = messages[0]["content"]
+        self.counted_texts.append(text)
+        return SimpleNamespace(input_tokens=_non_additive_tokens(text))
 
 
 def _make_class(name: str, method_count: int) -> ParsedClass:
@@ -113,3 +137,48 @@ def test_oversized_single_class_is_split_not_truncated(fake_anthropic_client: Fa
         method.name for batch in batches for cls in batch.classes for method in cls.methods
     }
     assert all_method_names == {f"method{i}" for i in range(40)}
+
+
+def test_assembled_batch_over_ceiling_is_resplit_not_dispatched() -> None:
+    classes = [_make_class(f"Class{i}", method_count=2) for i in range(3)]
+    client = _NonAdditiveClient()
+    single_class_tokens = _non_additive_tokens(render_class_for_prompt(classes[0], {}))
+
+    # The three per-class counts sum to exactly the ceiling, so the additive
+    # running total lets all three into one batch -- but the assembled text
+    # also pays for the "\n\n" separators and lands over the ceiling.
+    token_ceiling = single_class_tokens * 3
+    assert _non_additive_tokens("\n\n".join(render_class_for_prompt(c, {}) for c in classes)) > token_ceiling
+
+    batches = build_batches(
+        classes,
+        complexity_index={},
+        anthropic_client=client,  # type: ignore[arg-type]
+        model=_MODEL,
+        batch_size=100,
+        token_ceiling=token_ceiling,
+    )
+
+    assert len(batches) > 1
+    assert all(_non_additive_tokens(b.prompt_text) <= token_ceiling for b in batches)
+    assert [c.class_name for b in batches for c in b.classes] == [c.class_name for c in classes]
+
+
+def test_verification_adds_one_count_per_multi_class_batch_only() -> None:
+    classes = [_make_class(f"Class{i}", method_count=1) for i in range(6)]
+    client = _NonAdditiveClient()
+
+    batches = build_batches(
+        classes,
+        complexity_index={},
+        anthropic_client=client,  # type: ignore[arg-type]
+        model=_MODEL,
+        batch_size=3,
+        token_ceiling=1_000_000,
+    )
+
+    assert len(batches) == 2
+    # 6 per-class counts + 1 verification count for each of the 2 multi-class
+    # batches; no per-addition re-measurement of the growing batch text.
+    assert len(client.counted_texts) == 6 + 2
+    assert all(b.prompt_text in client.counted_texts for b in batches)

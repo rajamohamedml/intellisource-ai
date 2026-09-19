@@ -1,0 +1,9 @@
+# bugfix-20 thread
+
+- Worktree was cut before PR #19 merged; merged origin/master first (chunker had no system-prompt reservation / assembled-batch verification until then).
+- Investigate: `with_structured_output(ClassBatchAnalysis, include_raw=True)` returns a RunnableSequence whose first step binds `tools=[<anthropic tool dict>]` and `tool_choice={"type":"tool","name":"ClassBatchAnalysis"}` onto the model. `langchain_anthropic.chat_models.convert_to_anthropic_tool(ClassBatchAnalysis)` reproduces that `tools` payload exactly (equality verified), and `Anthropic.messages.count_tokens` accepts `tools` + `tool_choice`. So an exact figure is practical -- no fixed-reserve fallback needed. Fits BUGFIX scope.
+- Live check (claude-haiku-4-5, real count_tokens): system prompt alone 139 tokens; with tools+tool_choice 1063 -> ~924 tokens of uncounted overhead, ~23% of the default 4,000 ceiling.
+- Fix: `llm_client.BATCH_TOOL_DEFINITION` / `BATCH_TOOL_CHOICE` (built with the converter); `build_batches(tools=, tool_choice=)` measures system prompt + tools in ONE count_tokens call per run and subtracts it from the ceiling (feeds both the additive path and the assembled-batch verification, same as the #19 system-prompt reservation). Per-class/batch counts stay tool-free. `pipeline.run_pipeline` passes them.
+- Drift guard: `test_batch_tool_reservation_matches_what_the_real_chain_sends` asserts the constants equal what the real chain binds (reads `chain.first.steps__["raw"].kwargs` -- internal, but only in a test, so a langchain upgrade fails loudly instead of silently under-reserving).
+- Fakes in conftest/test_chunker/test_pipeline_token_estimation now accept `tools`/`tool_choice`.
+- Gotcha (same as bugfix-10): editable install points at MAIN checkout's src; run pytest/mypy with PYTHONPATH=$PWD/src.

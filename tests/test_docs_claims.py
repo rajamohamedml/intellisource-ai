@@ -2,6 +2,8 @@
 what `pipeline._generate_overview` actually sends (README/build-file excerpts).
 """
 
+from __future__ import annotations
+
 from pathlib import Path
 
 from intellisource_ai import pipeline

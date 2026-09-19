@@ -3,7 +3,6 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-import intellisource_ai
 from intellisource_ai.java_lexing import strip_comments_and_literals
 
 
@@ -40,7 +39,7 @@ def test_parser_and_complexity_do_not_import_each_other() -> None:
     """Pipeline stages must not have backwards edges: the shared masking
     helper lives in `java_lexing`, so neither `java_parser` (stage 1) nor
     `complexity` (stage 2) may import from the other."""
-    package_dir = Path(intellisource_ai.__file__).parent
+    package_dir = Path(__file__).resolve().parents[1] / "src" / "intellisource_ai"
 
     def imported_modules(filename: str) -> set[str]:
         tree = ast.parse((package_dir / filename).read_text(encoding="utf-8"))

@@ -5,14 +5,17 @@ request (system prompt, schema description) across all of them. A hard
 token ceiling — verified against the real Anthropic tokenizer via
 `client.messages.count_tokens`, never a character-count guess or
 `tiktoken` (the wrong tokenizer for Claude) — keeps every call bounded and
-cheap, satisfying the "without exceeding token limits" requirement
-literally rather than approximately.
+cheap. The ceiling bounds each request's input: the fixed system prompt and
+the structured-output tool definition are counted once, together, and
+reserved from it, and each batch's assembled class text is re-counted to
+verify it fits the remainder.
 """
 
 from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from typing import Any
 
 from anthropic import Anthropic
 
@@ -74,8 +77,17 @@ def render_class_for_prompt(
     )
 
 
-def _count_tokens(client: Anthropic, model: str, text: str) -> int:
-    """Count tokens for `text` via the real Anthropic tokenizer.
+def _count_tokens(
+    client: Anthropic,
+    model: str,
+    text: str,
+    *,
+    tools: list[dict[str, Any]] | None = None,
+    tool_choice: dict[str, Any] | None = None,
+) -> int:
+    """Count tokens for `text` via the real Anthropic tokenizer, plus the
+    tokens of `tools`/`tool_choice` when given (the API counts a request's
+    tool definitions as input, exactly as it will on the real call).
 
     Raises:
         LLMExtractionError: on any SDK-level failure (bad API key, network
@@ -86,8 +98,15 @@ def _count_tokens(client: Anthropic, model: str, text: str) -> int:
             is deliberately allowed to propagate and fail the whole run
             with a clean error rather than attempting per-class recovery.
     """
+    extra: dict[str, Any] = {}
+    if tools:
+        extra["tools"] = tools
+        if tool_choice:
+            extra["tool_choice"] = tool_choice
     try:
-        response = client.messages.count_tokens(model=model, messages=[{"role": "user", "content": text}])
+        response = client.messages.count_tokens(
+            model=model, messages=[{"role": "user", "content": text}], **extra
+        )
     except Exception as exc:
         raise LLMExtractionError(f"Token counting failed: {exc}") from exc
     return response.input_tokens
@@ -134,6 +153,38 @@ def _split_oversized_class(
     return sub_batches
 
 
+def _verified_batches(
+    classes: list[ParsedClass],
+    rendered_parts: list[str],
+    client: Anthropic,
+    model: str,
+    token_ceiling: int,
+) -> list[ClassBatch]:
+    """Return `classes` as one batch, after confirming the assembled text
+    really fits `token_ceiling`; bisect and re-verify each half if it doesn't.
+
+    The additive per-class running total in `_batch_group` can undershoot
+    (separators and shared-context token boundaries aren't additive), so this
+    is the one exact check against the text that will actually be dispatched.
+    A single-class batch is never re-counted: its text is exactly the text
+    already measured (and found within the ceiling) when it was rendered.
+    """
+    prompt_text = "\n\n".join(rendered_parts)
+    if len(classes) == 1 or _count_tokens(client, model, prompt_text) <= token_ceiling:
+        return [ClassBatch(classes=list(classes), prompt_text=prompt_text)]
+
+    logger.warning(
+        "Assembled batch of %d classes exceeds the %d-token ceiling despite per-class counts "
+        "fitting; re-splitting it.",
+        len(classes),
+        token_ceiling,
+    )
+    mid = len(classes) // 2
+    left = _verified_batches(classes[:mid], rendered_parts[:mid], client, model, token_ceiling)
+    right = _verified_batches(classes[mid:], rendered_parts[mid:], client, model, token_ceiling)
+    return left + right
+
+
 def _batch_group(
     classes: list[ParsedClass],
     complexity_index: ComplexityIndex,
@@ -150,8 +201,8 @@ def _batch_group(
     def flush() -> None:
         nonlocal current_classes, current_text_parts, current_token_estimate
         if current_classes:
-            batches.append(
-                ClassBatch(classes=list(current_classes), prompt_text="\n\n".join(current_text_parts))
+            batches.extend(
+                _verified_batches(current_classes, current_text_parts, client, model, token_ceiling)
             )
         current_classes, current_text_parts, current_token_estimate = [], [], 0
 
@@ -169,7 +220,9 @@ def _batch_group(
         # every addition — a small approximation (shared-context token
         # boundaries aren't perfectly additive) traded for O(n) instead of
         # O(n^2) count_tokens calls. The batch_size cap below is a second,
-        # independent safety margin against that approximation drifting.
+        # independent safety margin, and `_verified_batches` re-counts each
+        # multi-class batch's assembled text once (re-splitting in the rare
+        # case it overshoots), so the ceiling is still enforced literally.
         would_exceed = current_token_estimate + class_tokens > token_ceiling
         if current_classes and (would_exceed or len(current_classes) >= batch_size):
             flush()
@@ -190,6 +243,9 @@ def build_batches(
     model: str,
     batch_size: int,
     token_ceiling: int,
+    system_prompt: str = "",
+    tools: list[dict[str, Any]] | None = None,
+    tool_choice: dict[str, Any] | None = None,
 ) -> list[ClassBatch]:
     """Group `classes` into token-bounded batches for LLM analysis.
 
@@ -206,9 +262,35 @@ def build_batches(
             LangChain `ChatAnthropic` chains used for the actual analysis.
         model: Model ID to count tokens against (tokenization is model-specific).
         batch_size: Maximum classes per batch.
-        token_ceiling: Maximum input tokens per batch, enforced via real
-            token counts, not a character-count approximation.
+        token_ceiling: Maximum input tokens per request, enforced via real
+            token counts. The tokens of `system_prompt` and `tools` are
+            reserved from it, so each batch's class text gets the remainder.
+        system_prompt: The constant system prompt sent with every batch.
+        tools: The tool definition(s) the structured-output call attaches to
+            every batch request (see `llm_client.BATCH_TOOL_DEFINITION`).
+        tool_choice: The forced `tool_choice` sent alongside `tools`; it adds
+            its own fixed tokens, so it is counted with them.
+
+    The fixed overhead is measured with one `count_tokens` call per run -- the
+    system prompt goes in as a user message, which slightly over-reserves by
+    the fixed message framing (the safe direction) -- never once per batch.
+
+    Raises:
+        LLMExtractionError: if token counting fails, or if the fixed overhead
+            alone consumes the whole ceiling.
     """
+    effective_ceiling = token_ceiling
+    if system_prompt or tools:
+        # The API rejects an empty message, hence the "." stand-in.
+        effective_ceiling -= _count_tokens(
+            anthropic_client, model, system_prompt or ".", tools=tools, tool_choice=tool_choice
+        )
+        if effective_ceiling < 1:
+            raise LLMExtractionError(
+                f"The system prompt and tool definition alone use {token_ceiling - effective_ceiling} "
+                f"tokens, leaving no room under the {token_ceiling}-token ceiling; raise the token ceiling."
+            )
+
     by_directory: dict[str, list[ParsedClass]] = {}
     for cls in classes:
         directory = "/".join(cls.file_path.split("/")[:-1])
@@ -218,7 +300,12 @@ def build_batches(
     for directory in sorted(by_directory):
         batches.extend(
             _batch_group(
-                by_directory[directory], complexity_index, anthropic_client, model, batch_size, token_ceiling
+                by_directory[directory],
+                complexity_index,
+                anthropic_client,
+                model,
+                batch_size,
+                effective_ceiling,
             )
         )
 

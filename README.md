@@ -136,7 +136,15 @@ and ROI figures behind the tiles above (`total_lines_of_code`,
 `token_savings_pct`, `security_findings_high/medium/low`,
 `estimated_manual_review_hours/cost_usd`, `estimated_cost_savings_usd`,
 plus the `review_loc_per_hour_assumed`/`reviewer_hourly_rate_usd_assumed`
-inputs the ROI figures are built from) — schema version `1.3`.
+inputs the ROI figures are built from) — schema version `1.5`. `estimated_cost_usd`
+(and therefore `estimated_cost_savings_usd`) is `null` when the model has no known pricing.
+
+Each class also carries an `analysis_status` (`described` or `failed`), and
+`metadata.classes_with_failed_analysis` counts the `failed` ones: classes whose
+LLM batch errored or that the LLM omitted from its response, and so show the
+"Description unavailable." placeholder. The report surfaces the count as a tile
+and marks each such class card, so a failed analysis is never mistaken for a
+terse but real description.
 
 ## Approach
 
@@ -223,7 +231,7 @@ To see what the pipeline actually did on a given run:
 | Hotspots | `churn.commit_count x (1 + high-complexity method count)` per class, ranked descending (`pipeline._compute_hotspots`) — "changed often AND hard to change safely" |
 | Git churn | A single `git log --name-only` pass (`churn.py`), re-anchored from the git top level to `repo_root` so keys match every other module's `file_path`; degrades to empty (never raises) without history |
 | Token-limit enforcement | Real token counts via the Anthropic SDK's `count_tokens` endpoint (never a character-count guess, never `tiktoken`), enforced per batch with a hard ceiling |
-| Token-savings estimate | Real `count_tokens` calls over the entire raw repository vs. the condensed text this tool actually sends the LLM (`pipeline._estimate_repo_tokens`/`_estimate_llm_tokens`); an optional report-enrichment stat that degrades to 0 rather than failing the run if token counting errors |
+| Token-savings estimate | A local chars-per-token approximation over the entire raw repository (`pipeline._estimate_repo_tokens` — raw source is never sent to any API for this) vs. a live `count_tokens` count of the condensed text this tool actually sends the LLM (`_estimate_llm_tokens`); an optional, approximate report-enrichment stat that degrades to 0 rather than failing the run if the live count errors |
 | ROI estimate | `total_lines_of_code / review_loc_per_hour_assumed x reviewer_hourly_rate_usd_assumed` vs. this run's actual cost (`pipeline._estimate_manual_review_roi`) — a labeled estimate, with its assumed inputs configurable via `--review-loc-per-hour`/`--reviewer-hourly-rate` and carried alongside the figure in `analysis.json` |
 | LLM orchestration | LangChain's `ChatAnthropic` + `.with_structured_output(PydanticModel)`, so the API/SDK — not prompt wording — guarantees schema-conformant JSON |
 | Cost control | Batching (several classes per call) + content-hash caching (`cache.py`) so unchanged files never pay for a second LLM call |
@@ -268,13 +276,14 @@ Two items the assignment calls out by name got a specific, verifiable answer rat
 - **Class-type classification (`controller`/`service`/`repository`/etc.) is convention-based** — Spring stereotype annotations first, directory-name keywords as a fallback. An unconventionally-organized codebase may be classified as `other` more often.
 - **The project overview's tech-stack/dependency information is inferred by the LLM from a truncated excerpt of the README and build file**, not from a structured Gradle/Maven dependency parser. This keeps the one-time overview call simple; it may miss dependencies outside the excerpted portion of a very large build file.
 - **Cost estimates use published list pricing** for the configured model at the time this was written and may not reflect promotional or negotiated rates.
+- **The per-batch token ceiling reserves the system prompt and the structured-output tool definition, measured once per run.** `count_tokens` is called once with the system prompt plus the `tools`/`tool_choice` LangChain's `with_structured_output(ClassBatchAnalysis)` attaches to every batch request (rebuilt via `langchain_anthropic`'s `convert_to_anthropic_tool`, and asserted equal to what the real chain sends by `tests/test_llm_client.py`, so a LangChain upgrade that changes the payload fails a test instead of silently drifting). That overhead is subtracted from the ceiling and each multi-class batch's assembled text is re-counted to verify it fits the remainder. A single method that alone exceeds the ceiling still cannot be split further and is dispatched oversized.
 - **A class large enough to exceed the per-batch token ceiling on its own bypasses the cache** (its methods are split and analyzed fresh every run) rather than caching a partial result under the whole-class key. This is a rare edge case for typically-sized classes.
 - **Javadoc association is a nearest-preceding-comment heuristic**, not based on formal AST comment attachment (which `javalang` doesn't provide) — a Javadoc block separated from its declaration by unusual formatting could occasionally be missed.
 - **Security findings are regex-based pattern matching, not a certified static-analysis tool.** They catch the specific patterns `security_scanner.py` looks for (hardcoded credential-like fields, SQL string concatenation, empty catch blocks) — real vulnerabilities outside those three patterns are not flagged, and a legitimately-named non-secret field (e.g. `passwordMinLength`) could be a false positive.
 - **The dependency graph matches on simple class names, not fully-qualified/type-resolved references.** Two unrelated classes sharing the same simple name in different packages could produce a spurious edge; this is a heuristic, not a type-checker.
 - **Git churn quality depends on clone depth.** `--git-history-depth` (default 200) bounds how much history is cloned; a repo with more commits than that on the relevant files will under-report churn, and `--local-path` pointed at a shallow CI checkout (`fetch-depth: 1`) will show near-zero churn for everything. Churn is silently omitted (not an error) whenever `git log` has nothing to work with.
 - **The ROI estimate (manual-review hours/cost saved) is a labeled estimate, not a measured figure.** It's built from a configurable assumed throughput and hourly rate (`--review-loc-per-hour`, default 200; `--reviewer-hourly-rate`, default $75) applied to `total_lines_of_code` — there's no universal constant for either, so the report shows the assumed inputs alongside the derived figure rather than presenting it as ground truth.
-- **The raw-repository and condensed-LLM-input token estimates require a working Anthropic API connection**, unlike most of this tool's report content. They're optional report-enrichment stats: a `count_tokens` failure (bad key, no credit, network error) is logged and the figures degrade to 0 rather than failing the run.
+- **The raw-repository token figure is a local approximation, not a tokenizer count.** `estimated_total_tokens` is total characters ÷ 3.5 (`pipeline._ESTIMATED_CHARS_PER_TOKEN`), computed offline so proprietary source is never transmitted to any API for a cosmetic stat; `token_savings_pct` inherits that approximation. Only the condensed-LLM-input figure (`estimated_llm_tokens`) needs a live `count_tokens` call — on the text this tool sends the LLM anyway — and a failure there (bad key, no credit, network error) is logged and degrades it to 0 (and the savings to 0.0) rather than failing the run.
 
 ## Setup
 

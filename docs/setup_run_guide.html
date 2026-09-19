@@ -588,16 +588,17 @@
 
       <dt>token_savings_pct and the ROI estimate</dt>
       <dd>
-        <code>pipeline._estimate_repo_tokens()</code> and <code>_estimate_llm_tokens()</code>
-        both call the real Anthropic <code>count_tokens</code> endpoint — once over the entire
-        raw repository, once over the condensed text actually sent to the LLM — and their ratio
-        becomes <code>token_savings_pct</code>. The ROI figures
+        <code>pipeline._estimate_repo_tokens()</code> is a local chars-per-token approximation
+        over the entire raw repository (raw source is never sent to any API for this), while
+        <code>_estimate_llm_tokens()</code> calls the real Anthropic <code>count_tokens</code>
+        endpoint on the condensed text actually sent to the LLM — and their ratio
+        becomes the approximate <code>token_savings_pct</code>. The ROI figures
         (<code>_estimate_manual_review_roi()</code>) are a separate, purely arithmetic estimate
         from <code>total_lines_of_code</code> against the assumed
         <code>--review-loc-per-hour</code>/<code>--reviewer-hourly-rate</code>, compared to this
-        run's actual cost. Both the raw and condensed token calls are optional
-        report-enrichment stats, not core analysis: a failure is logged and reported as
-        <code>0</code> rather than aborting the run.
+        run's actual cost. Both token figures are optional
+        report-enrichment stats, not core analysis: a failed condensed-text count is logged and
+        reported as <code>0</code> rather than aborting the run.
       </dd>
 
       <dt>action.yml — the same pipeline, as a GitHub Action</dt>

@@ -18,7 +18,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
-SCHEMA_VERSION = "1.3"
+SCHEMA_VERSION = "1.5"
 
 
 class ClassType(StrEnum):
@@ -245,6 +245,17 @@ class ProjectOverview(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+class AnalysisStatus(StrEnum):
+    """Whether the LLM actually produced a description for a class. Lets a
+    reader tell a class whose analysis failed (its batch errored, or the LLM
+    omitted it from the response) apart from one that was described, however
+    tersely -- both would otherwise look alike in the final report.
+    """
+
+    DESCRIBED = "described"
+    FAILED = "failed"
+
+
 class MethodAnalysis(BaseModel):
     """One method in the final report: structure + complexity + LLM description."""
 
@@ -263,6 +274,7 @@ class ClassAnalysis(BaseModel):
     class_name: str
     class_type: ClassType
     description: str
+    analysis_status: AnalysisStatus = AnalysisStatus.DESCRIBED
     rest_endpoints: list[RestEndpoint] = Field(default_factory=list)
     methods: list[MethodAnalysis] = Field(default_factory=list)
     notable_aspects: list[str] = Field(default_factory=list)
@@ -285,19 +297,26 @@ class RunMetadata(BaseModel):
     llm_calls_cached: int
     total_input_tokens: int
     total_output_tokens: int
-    estimated_cost_usd: float
+    # This run's incremental LLM spend only (classes served from cache add
+    # nothing). None when model_used has no known pricing -- see
+    # llm_client._PRICING_USD_PER_MILLION_TOKENS.
+    estimated_cost_usd: float | None
     security_findings_total: int = 0
     total_lines_of_code: int = 0
     # Raw-repository size figures (every .java class file plus recognized
     # config files), independent of caching and of what this particular run
     # actually spent -- contrast with total_input_tokens/total_output_tokens
     # above, which are this run's actual, cache-aware LLM usage.
+    # estimated_total_tokens is a LOCAL chars-per-token approximation (raw
+    # source is never sent to an external tokenizer), not a live-tokenizer
+    # count; estimated_llm_tokens is a live count of the condensed text only.
     estimated_total_tokens: int = 0
     llm_input_characters: int = 0
     estimated_llm_tokens: int = 0
     # Headline demo figure: percentage reduction from estimated_total_tokens
-    # (raw repo) to estimated_llm_tokens (condensed extraction) -- how much
-    # token cost this tool's structure-not-source approach saves.
+    # (raw repo, approximate) to estimated_llm_tokens (condensed extraction)
+    # -- how much token cost this tool's structure-not-source approach saves.
+    # Approximate, since its baseline is a heuristic.
     token_savings_pct: float = 0.0
     # Severity breakdown of security_findings_total, surfaced as its own
     # top-level tiles rather than requiring a reader to open Notable
@@ -314,7 +333,10 @@ class RunMetadata(BaseModel):
     reviewer_hourly_rate_usd_assumed: float = 0.0
     estimated_manual_review_hours: float = 0.0
     estimated_manual_review_cost_usd: float = 0.0
-    estimated_cost_savings_usd: float = 0.0
+    estimated_cost_savings_usd: float | None = 0.0  # None when estimated_cost_usd is None
+    # Classes carrying the "Description unavailable." placeholder because
+    # their LLM batch failed or the LLM omitted them (AnalysisStatus.FAILED).
+    classes_with_failed_analysis: int = 0
 
 
 class ProjectAnalysis(BaseModel):

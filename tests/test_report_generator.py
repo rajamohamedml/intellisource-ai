@@ -88,3 +88,21 @@ def test_llm_generated_text_is_escaped_not_executed() -> None:
 
     assert "<script>alert('xss')</script>" not in html
     assert "&lt;script&gt;" in html
+
+
+def test_unknown_pricing_renders_na_not_a_dollar_figure() -> None:
+    analysis = _sample_analysis("A controller for widgets.")
+    analysis.metadata.estimated_cost_usd = None
+    analysis.metadata.estimated_cost_savings_usd = None
+
+    html = render_report(analysis)
+
+    assert "Pricing unavailable for model" in html
+    assert "$0.0000" not in html
+
+
+def test_known_pricing_renders_run_cost_as_incremental() -> None:
+    html = render_report(_sample_analysis("A controller for widgets."))
+
+    assert "$0.0007" in html
+    assert "Incremental cost of this run only" in html

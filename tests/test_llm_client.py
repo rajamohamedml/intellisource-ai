@@ -105,3 +105,17 @@ def test_analyze_batch_still_raises_when_unrecoverable(monkeypatch: pytest.Monke
 
     with pytest.raises(LLMExtractionError, match="totally broken"):
         client.analyze_batch("irrelevant prompt text")
+
+
+def test_usage_tracker_cost_for_known_model_uses_its_published_rate() -> None:
+    tracker = UsageTracker(model="claude-haiku-4-5")
+    tracker.record(1_000_000, 1_000_000)
+
+    assert tracker.estimated_cost_usd == pytest.approx(1.00 + 5.00)
+
+
+def test_usage_tracker_cost_is_none_for_unrecognized_model() -> None:
+    tracker = UsageTracker(model="claude-not-a-real-model")
+    tracker.record(1_000_000, 1_000_000)
+
+    assert tracker.estimated_cost_usd is None

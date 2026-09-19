@@ -18,7 +18,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
-SCHEMA_VERSION = "1.3"
+SCHEMA_VERSION = "1.4"
 
 
 class ClassType(StrEnum):
@@ -285,7 +285,10 @@ class RunMetadata(BaseModel):
     llm_calls_cached: int
     total_input_tokens: int
     total_output_tokens: int
-    estimated_cost_usd: float
+    # This run's incremental LLM spend only (classes served from cache add
+    # nothing). None when model_used has no known pricing -- see
+    # llm_client._PRICING_USD_PER_MILLION_TOKENS.
+    estimated_cost_usd: float | None
     security_findings_total: int = 0
     total_lines_of_code: int = 0
     # Raw-repository size figures (every .java class file plus recognized
@@ -314,7 +317,7 @@ class RunMetadata(BaseModel):
     reviewer_hourly_rate_usd_assumed: float = 0.0
     estimated_manual_review_hours: float = 0.0
     estimated_manual_review_cost_usd: float = 0.0
-    estimated_cost_savings_usd: float = 0.0
+    estimated_cost_savings_usd: float | None = 0.0  # None when estimated_cost_usd is None
 
 
 class ProjectAnalysis(BaseModel):

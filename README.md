@@ -136,7 +136,8 @@ and ROI figures behind the tiles above (`total_lines_of_code`,
 `token_savings_pct`, `security_findings_high/medium/low`,
 `estimated_manual_review_hours/cost_usd`, `estimated_cost_savings_usd`,
 plus the `review_loc_per_hour_assumed`/`reviewer_hourly_rate_usd_assumed`
-inputs the ROI figures are built from) — schema version `1.3`.
+inputs the ROI figures are built from) — schema version `1.4`. `estimated_cost_usd`
+(and therefore `estimated_cost_savings_usd`) is `null` when the model has no known pricing.
 
 ## Approach
 

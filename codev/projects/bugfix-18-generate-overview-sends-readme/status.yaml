@@ -1,0 +1,17 @@
+id: bugfix-18
+title: generate-overview-sends-readme
+protocol: bugfix
+phase: verified
+plan_phases: []
+current_plan_phase: null
+gates:
+  pr:
+    status: approved
+    requested_at: '2026-09-19T17:19:05.106Z'
+    approved_at: '2026-09-19T17:23:14.738Z'
+iteration: 1
+build_complete: false
+history: []
+started_at: '2026-09-19T17:16:25.625Z'
+updated_at: '2026-09-19T17:23:16.658Z'
+pr_ready_for_human: false

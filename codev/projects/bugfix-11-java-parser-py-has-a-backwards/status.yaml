@@ -1,7 +1,7 @@
 id: bugfix-11
 title: java-parser-py-has-a-backwards
 protocol: bugfix
-phase: pr
+phase: verified
 plan_phases: []
 current_plan_phase: null
 gates:
@@ -13,7 +13,7 @@ iteration: 1
 build_complete: false
 history: []
 started_at: '2026-09-18T18:44:56.122Z'
-updated_at: '2026-09-19T17:11:12.246Z'
+updated_at: '2026-09-19T17:11:13.703Z'
 pr_history:
   - phase: pr
     pr_number: 23

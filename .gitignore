@@ -25,3 +25,16 @@ dist/
 
 # Local Python virtual environment
 .venv/
+
+# Codev (added by codev update 2026-09-17)
+.agent-farm/
+.consult/
+codev/.update-hashes.json
+.builders/
+.architect-role.md
+codev/state/*.md
+!codev/state/*_thread.md
+
+# Installed Codev skill definitions (generated duplicates, not project source)
+.claude/
+.codex/

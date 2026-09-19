@@ -27,8 +27,8 @@ from javalang.tree import (
     InterfaceDeclaration,
 )
 
-from intellisource_ai.complexity import _strip_comments_and_literals
 from intellisource_ai.exceptions import JavaParseError
+from intellisource_ai.java_lexing import strip_comments_and_literals
 from intellisource_ai.schemas import (
     AnnotationInfo,
     ClassType,
@@ -379,7 +379,7 @@ _SWITCH_KEYWORD = re.compile(r"(?<![\w$])switch(?![\w$])")
 def _find_switch_body_open_braces(masked: str) -> set[int]:
     """Locate the opening `{` of every `switch (...) { ... }` body in
     `masked` (a same-length, string/comment-blanked copy of the source --
-    see `complexity._strip_comments_and_literals` -- so a `switch` inside a
+    see `java_lexing.strip_comments_and_literals` -- so a `switch` inside a
     string/comment, or a stray `{`/`}` inside one, can't cause a false
     match). Used to distinguish a switch's own top-level `case`/`default`
     labels from ones nested inside an unrelated block.
@@ -478,7 +478,7 @@ def _normalize_arrow_switches(source: str) -> str:
     style, so an expression-form switch simply fails to parse again after
     this rewrite too -- same outcome as today, never a silently wrong tree.
     """
-    masked = _strip_comments_and_literals(source)
+    masked = strip_comments_and_literals(source)
     switch_open_braces = _find_switch_body_open_braces(masked)
     if not switch_open_braces:
         return source

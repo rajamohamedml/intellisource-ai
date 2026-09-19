@@ -100,7 +100,8 @@ runs:
         print(f"| LLM calls made | {m['llm_calls_made']} |")
         print(f"| Served from cache | {m['llm_calls_cached']} |")
         print(f"| Tokens (in / out) | {m['total_input_tokens']} / {m['total_output_tokens']} |")
-        print(f"| Estimated cost | ${m['estimated_cost_usd']:.4f} |")
+        cost = m["estimated_cost_usd"]
+        print(f"| Estimated cost (this run) | {'pricing unavailable for model' if cost is None else f'${cost:.4f}'} |")
         PY
 
     - name: Upload report artifact

@@ -36,7 +36,6 @@ _PRICING_USD_PER_MILLION_TOKENS: dict[str, tuple[float, float]] = {
     "claude-sonnet-4-6": (3.00, 15.00),
     "claude-opus-4-8": (5.00, 25.00),
 }
-_DEFAULT_PRICING = (1.00, 5.00)  # fall back to Haiku-tier pricing for an unrecognized model ID
 
 BATCH_SYSTEM_PROMPT = (
     "You are analyzing Java classes from a Spring Boot codebase. For each class "
@@ -84,9 +83,15 @@ class UsageTracker:
         self.output_tokens += output_tokens
 
     @property
-    def estimated_cost_usd(self) -> float:
-        """Approximate USD cost of every call recorded so far."""
-        input_price, output_price = _PRICING_USD_PER_MILLION_TOKENS.get(self.model, _DEFAULT_PRICING)
+    def estimated_cost_usd(self) -> float | None:
+        """Approximate USD cost of every call recorded so far, or `None` when
+        `self.model` has no known published pricing -- never a guessed
+        substitute rate, which would look plausible but be wrong.
+        """
+        pricing = _PRICING_USD_PER_MILLION_TOKENS.get(self.model)
+        if pricing is None:
+            return None
+        input_price, output_price = pricing
         return (self.input_tokens / 1_000_000) * input_price + (self.output_tokens / 1_000_000) * output_price
 
 

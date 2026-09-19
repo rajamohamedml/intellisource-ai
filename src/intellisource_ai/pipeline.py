@@ -415,8 +415,8 @@ def _count_failed_analyses(classes: list[ClassAnalysis]) -> int:
 
 
 def _estimate_manual_review_roi(
-    total_lines_of_code: int, actual_cost_usd: float, loc_per_hour: int, hourly_rate_usd: float
-) -> tuple[float, float, float]:
+    total_lines_of_code: int, actual_cost_usd: float | None, loc_per_hour: int, hourly_rate_usd: float
+) -> tuple[float, float, float | None]:
     """Translate `total_lines_of_code` into a labeled ROI estimate against
     manual code review, using the caller-supplied throughput/rate
     assumptions (see config.py's `--review-loc-per-hour` /
@@ -424,11 +424,16 @@ def _estimate_manual_review_roi(
     is why those assumed inputs are carried alongside it in `RunMetadata`.
 
     Returns (estimated_manual_hours, estimated_manual_cost_usd, estimated_cost_savings_usd).
+    Savings is `None` whenever `actual_cost_usd` is unknown (unpriced
+    model) -- even for a fully cache-served run that billed zero tokens,
+    since a fresh run's cost would still be unknowable.
     """
     if loc_per_hour <= 0:
-        return 0.0, 0.0, 0.0
+        return 0.0, 0.0, (None if actual_cost_usd is None else 0.0)
     hours = total_lines_of_code / loc_per_hour
     manual_cost = hours * hourly_rate_usd
+    if actual_cost_usd is None:
+        return round(hours, 1), round(manual_cost, 2), None
     savings = max(0.0, manual_cost - actual_cost_usd)
     return round(hours, 1), round(manual_cost, 2), round(savings, 2)
 
@@ -610,10 +615,15 @@ def _write_outputs(analysis: ProjectAnalysis, settings: Settings) -> None:
 
 def _log_summary(analysis: ProjectAnalysis) -> None:
     m = analysis.metadata
+    cost_text = (
+        f"~${m.estimated_cost_usd:.4f}"
+        if m.estimated_cost_usd is not None
+        else "unknown (pricing unavailable for model)"
+    )
     logger.info(
         "Done: %d file(s) parsed (%d parse error(s)), %d class(es) analyzed, "
         "%d LLM call(s) made / %d served from cache, %d input + %d output tokens, "
-        "~$%.4f estimated cost, %d class(es) with failed analysis",
+        "%s estimated cost, %d class(es) with failed analysis",
         m.total_files_parsed,
         len(m.parse_errors),
         len(analysis.classes),
@@ -621,6 +631,6 @@ def _log_summary(analysis: ProjectAnalysis) -> None:
         m.llm_calls_cached,
         m.total_input_tokens,
         m.total_output_tokens,
-        m.estimated_cost_usd,
+        cost_text,
         m.classes_with_failed_analysis,
     )

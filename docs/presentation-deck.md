@@ -38,7 +38,7 @@ Enterprise Codebase Intelligence & Automated Architectural Discovery
 Static parsing → REST endpoints, complexity, security findings, dependency graph, git-churn — zero API cost, zero hallucination
 
 **AI Engine** (contextual, cheap)
-LLM called **only** for semantic synthesis — turning code into plain business meaning — on condensed structure, never raw source, with aggressive caching so no class is ever explained twice
+LLM called **only** for semantic synthesis — turning code into plain business meaning — on condensed structure, never raw Java source (plus a bounded README/build-file excerpt for the project overview), with aggressive caching so no class is ever explained twice
 
 ---
 

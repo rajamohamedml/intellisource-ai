@@ -25,3 +25,9 @@ def test_claude_md_documents_overview_excerpt_exception() -> None:
     assert "README" in _CLAUDE_MD
     assert f"{pipeline._README_CHAR_LIMIT:,} chars" in _CLAUDE_MD
     assert f"{pipeline._BUILD_FILE_CHAR_LIMIT:,} chars" in _CLAUDE_MD
+
+
+def test_presentation_deck_does_not_claim_all_raw_source_is_withheld() -> None:
+    deck = (Path(__file__).resolve().parent.parent / "docs" / "presentation-deck.md").read_text(encoding="utf-8")
+    assert "never raw source," not in deck
+    assert "never raw Java source" in deck

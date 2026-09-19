@@ -28,6 +28,7 @@ def test_claude_md_documents_overview_excerpt_exception() -> None:
 
 
 def test_presentation_deck_does_not_claim_all_raw_source_is_withheld() -> None:
-    deck = (Path(__file__).resolve().parent.parent / "docs" / "presentation-deck.md").read_text(encoding="utf-8")
+    deck_path = Path(__file__).resolve().parent.parent / "docs" / "presentation-deck.md"
+    deck = deck_path.read_text(encoding="utf-8")
     assert "never raw source," not in deck
     assert "never raw Java source" in deck
